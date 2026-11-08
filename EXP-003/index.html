@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>終電後、相乗り。</title>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+html,body{height:100%;overflow:hidden;background:#0d0f1c;font-family:"Zen Maru Gothic",sans-serif;color:#1c1a24}
+#app{height:100dvh;max-width:480px;margin:0 auto;position:relative;overflow:hidden;
+  padding:calc(env(safe-area-inset-top) + 8px) 10px calc(env(safe-area-inset-bottom) + 10px);
+  background:linear-gradient(#1a1d36,#2b2347);display:flex;flex-direction:column;color:#f2eee6}
+.screen{display:none;flex:1;flex-direction:column;min-height:0;gap:8px}
+.screen.on{display:flex}
+.bar{display:flex;align-items:center;justify-content:space-between;font-size:12px;color:#c9c0e0;gap:8px}
+.onair{background:#e0473b;color:#fff;border-radius:4px;padding:1px 6px;font-weight:900;letter-spacing:.1em;font-size:11px;flex:none}
+.clock{font-weight:900;color:#ffd34d}
+.btn{border:none;border-radius:14px;font-family:inherit;font-weight:900;font-size:20px;padding:13px 24px;
+  background:#ffd34d;color:#2b2347;box-shadow:0 4px 0 #b08a1a;cursor:pointer}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 #b08a1a}
+.btn:disabled{background:#5d5677;box-shadow:0 4px 0 #3d3755;color:#9d97b3}
+.btn.sub{background:#8f86b3;box-shadow:0 4px 0 #5d5677;color:#fff;font-size:15px;padding:11px 16px}
+/* title */
+#title{justify-content:center;align-items:center;text-align:center;gap:16px}
+#title h1{font-size:42px;font-weight:900;line-height:1.15}
+#title h1 small{display:block;font-size:14px;color:#c9c0e0;margin-bottom:6px}
+#title p{font-size:14px;line-height:1.75;color:#ddd6ee}
+/* pick */
+.cab{background:#ffd34d;border-radius:14px;padding:6px 8px;color:#2b2347}
+.cab .seats{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
+.seat{aspect-ratio:1.1;background:#fff6d6;border-radius:9px;display:flex;align-items:center;justify-content:center;position:relative;font-size:10px;color:#a8902f}
+.seat svg{height:88%;width:auto}
+.seat .lb{position:absolute;top:1px;left:4px;font-size:9px;font-weight:900;color:#8a6d10}
+.grid{flex:1;min-height:0;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);gap:6px}
+.card{background:#fdfbf6;border-radius:12px;border:3px solid transparent;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  min-height:0;cursor:pointer;position:relative;padding:2px;color:#1c1a24}
+.card svg{flex:1;min-height:0;width:100%;max-height:66%}
+.card .nm{font-size:13px;font-weight:900;line-height:1.1}
+.card .ds{font-size:10px;color:#6d6585;font-weight:700}
+.card.sel{border-color:#ffd34d;background:#fff3c4}
+.card .ck{position:absolute;top:3px;right:5px;background:#e0473b;color:#fff;border-radius:50%;width:18px;height:18px;font-size:11px;font-weight:900;display:none;align-items:center;justify-content:center}
+.card.sel .ck{display:flex}
+.talk{display:flex;gap:6px;align-items:center;min-height:44px}
+.talk .who{flex:none;width:38px;height:38px;border-radius:50%;background:#fdfbf6;overflow:hidden}
+.talk .bub{flex:1;background:#fdfbf6;color:#1c1a24;border-radius:12px;padding:7px 10px;font-size:13px;line-height:1.35;font-weight:700}
+/* map */
+.map{flex:none;aspect-ratio:300/165;background:#151829;border-radius:14px;position:relative;overflow:hidden}
+.map svg{width:100%;height:100%;display:block}
+.order{flex:1;min-height:0;display:grid;grid-template-columns:repeat(2,1fr);grid-template-rows:repeat(2,1fr);gap:6px}
+.ob{background:#fdfbf6;border-radius:12px;border:3px solid transparent;min-height:0;position:relative;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#1c1a24}
+.ob svg{flex:1;min-height:0;width:100%}
+.ob .d{font-size:12px;padding-bottom:4px;font-weight:900;color:#6d6585}
+.ob .n{position:absolute;top:4px;left:6px;background:#e0473b;color:#fff;border-radius:50%;width:28px;height:28px;font-size:16px;font-weight:900;display:none;align-items:center;justify-content:center}
+.ob.set{border-color:#ffd34d}.ob.set .n{display:flex}
+.est{display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:700;color:#ddd6ee}
+.est b{font-size:22px;color:#ffd34d}
+.evt{flex:1;min-height:0;display:flex;flex-direction:column;gap:10px;align-items:center;justify-content:center;opacity:0;transition:opacity .2s;text-align:center}
+.evt.on{opacity:1}
+.evt .who{flex:none;width:120px;height:120px;border-radius:50%;background:#fdfbf6;overflow:hidden}
+.evt .bub{background:#fdfbf6;color:#1c1a24;border-radius:14px;padding:12px 14px;font-size:17px;font-weight:700;line-height:1.5}
+.meterbox{position:absolute;top:8px;right:8px;background:#0b0d18;border:2px solid #3a3f63;border-radius:8px;padding:4px 8px;font-weight:900;color:#7dff9a;font-size:15px;font-family:monospace}
+/* result */
+.score{text-align:center}
+.score .t{font-size:42px;font-weight:900;line-height:1;color:#ffd34d}
+.score .r{font-size:13px;font-weight:700;color:#ddd6ee;margin-top:3px}
+.radio{flex:1;min-height:0;background:#0f1120;border-radius:14px;padding:32px 10px 18px;display:flex;flex-direction:column;justify-content:flex-end;gap:7px;overflow:hidden;cursor:pointer;position:relative}
+.radio .head{position:absolute;top:8px;left:10px;display:flex;gap:6px;align-items:center;color:#c9c0e0;font-size:11px;font-weight:700}
+.ln{display:flex;gap:6px;align-items:flex-end;animation:up .25s}
+.ln.r{flex-direction:row-reverse}
+.ln .who{flex:none;width:34px;height:34px;border-radius:50%;background:#fdfbf6;overflow:hidden}
+.ln .bub{max-width:80%;background:#fdfbf6;color:#1c1a24;border-radius:12px;padding:6px 10px;font-size:14px;line-height:1.4;font-weight:700}
+.ln.r .bub{background:#ffe9a8}
+.ln.h .bub{background:#e8e2ff;border:2px dashed #8f86b3;max-width:92%;font-size:13px}
+.ln .nm{font-size:10px;color:#8f86b3;display:block;margin-bottom:1px}
+@keyframes up{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+#rbtns{visibility:hidden;display:flex;gap:8px;justify-content:center}
+.hint{font-size:10px;color:#6d6585;text-align:center;position:absolute;bottom:4px;left:0;right:0}
+</style>
+</head>
+<body>
+<div id="app">
+
+<section class="screen on" id="title">
+  <div class="bar" style="width:100%"><span class="onair">ON AIR</span><span>深夜ラジオ「夜田と朝井の二時です」</span></div>
+  <h1><small>リスナー投稿企画</small>終電後、<br>相乗り。</h1>
+  <div id="titleArt" style="display:flex;gap:6px;justify-content:center"></div>
+  <p>終電を逃した駅前。タクシー乗り場には<br>なぜか異世界の人たちが並んでいる。<br>あなたと相乗りする<b>3人</b>と<b>降りる順番</b>を決めて、<br>家(東6km)まで<b>安く</b>帰れ。</p>
+  <button class="btn" id="startBtn">相乗り相手を選ぶ</button>
+</section>
+
+<section class="screen" id="pick">
+  <div class="bar"><span class="onair">ON AIR</span><span>① 相乗りする3人を選べ</span><span class="clock">0:42</span></div>
+  <div class="cab"><div class="seats" id="seats"></div></div>
+  <div class="grid" id="grid"></div>
+  <div class="talk"><div class="who" id="pickWho"></div><div class="bub" id="pickBub">運転手「どこまで？ …え、全員バラバラ？」</div></div>
+  <button class="btn" id="nextBtn" disabled>降りる順番を決める</button>
+</section>
+
+<section class="screen" id="order">
+  <div class="bar"><span class="onair">ON AIR</span><span>② 降りる順にタップ</span><span class="clock">0:44</span></div>
+  <div class="map" id="map1"></div>
+  <div class="order" id="orderRow"></div>
+  <div class="est"><span>あなたの支払い(見込み・ハプニング抜き)</span><b id="est">―</b></div>
+  <button class="btn" id="goBtn" disabled>出発</button>
+</section>
+
+<section class="screen" id="ride">
+  <div class="bar"><span class="onair">ON AIR</span><span>③ 走行中…</span><span class="clock" id="rideClock">0:45</span></div>
+  <div class="map" id="map2"><div id="map2svg" style="position:absolute;inset:0"></div><div class="meterbox" id="meter">¥0</div></div>
+  <div class="evt" id="evt"><div class="who" id="evtWho"></div><div class="bub" id="evtBub"></div></div>
+</section>
+
+<section class="screen" id="result">
+  <div class="bar"><span class="onair">ON AIR</span><span>投稿が読まれた</span></div>
+  <div class="score"><div class="t" id="rt"></div><div class="r" id="rr"></div></div>
+  <div class="radio" id="radio"><div class="head"><span class="onair">ON AIR</span>夜田 × 朝井</div><div class="hint" id="hint">タップで早送り</div></div>
+  <div id="rbtns"><button class="btn" id="againBtn">別の順番で</button><button class="btn sub" id="reBtn">メンバーから選びなおす</button></div>
+</section>
+
+</div>
+<script>
+const BASE=500, PER_KM=450, HOME={dir:'E',km:6};
+const P=[
+ {id:'uranai',nm:'占い師',dir:'N',km:3,pick:'占い師「今宵は西が吉と出ております」'},
+ {id:'shaman',nm:'シャーマン',dir:'N',km:5,pick:'シャーマン「祖霊も一緒に乗ります」運転手「何人？」'},
+ {id:'yusha', nm:'勇者',  dir:'E',km:4,pick:'勇者「剣は抜けないので、このままで」'},
+ {id:'mahou', nm:'魔法使い',dir:'E',km:8,pick:'魔法使い「割り勘の計算は得意です」'},
+ {id:'ginyu', nm:'吟遊詩人',dir:'W',km:2,pick:'吟遊詩人「道中、一曲いかが」運転手「結構です」'},
+ {id:'souryo',nm:'僧侶',  dir:'W',km:5,pick:'僧侶「酔い覚まし(回復)かけられます」'},
+ {id:'sarary',nm:'酔った会社員',dir:'E',km:3,pick:'会社員「だいじょぶ、だいじょぶ…うっ」'},
+ {id:'ninja', nm:'忍者',  dir:'W',km:4,pick:'忍者「……」(もう座ってる)'},
+ {id:'ryu',   nm:'竜騎士',dir:'E',km:12,pick:'竜騎士「竜は飲んだら乗れないので」'}
+];
+const byId=Object.fromEntries(P.map(p=>[p.id,p]));
+byId.you={id:'you',nm:'あなた',dir:'E',km:6};
+const dirName={N:'北',E:'東',W:'西'};
+
+/* ---------- 絵 ---------- */
+function face(id){
+  const skin='#f6d3b0';let body='',head=`<circle cx="32" cy="38" r="13" fill="${skin}"/>`,hat='',ex='';
+  const eyes=(y=37)=>`<circle cx="27" cy="${y}" r="2.2" fill="#1c1a24"/><circle cx="37" cy="${y}" r="2.2" fill="#1c1a24"/>`;
+  const mouth=(y=44,w=4)=>`<path d="M${32-w} ${y}q${w} 3 ${w*2} 0" stroke="#1c1a24" stroke-width="1.6" fill="none"/>`;
+  const robe=c=>`<path d="M10 64q22-14 44 0v16H10z" fill="${c}"/>`;
+  switch(id){
+   case 'uranai':body=robe('#5b3b8c');hat=`<path d="M16 42q0-26 16-26t16 26q-6-14-16-14t-16 14z" fill="#3e2366"/>`;
+     ex=eyes()+mouth(44,3)+`<circle cx="50" cy="66" r="8" fill="#b9e6ff" stroke="#fff" stroke-width="1.5"/>`;break;
+   case 'shaman':body=robe('#8a5a2b')+`<path d="M14 66l36 0" stroke="#e0473b" stroke-width="3"/>`;
+     hat=`<g stroke-width="4" stroke-linecap="round"><path d="M20 28l-6-14" stroke="#e0473b"/><path d="M26 25l-2-15" stroke="#ffd34d"/><path d="M32 24v-16" stroke="#4fb3a5"/><path d="M38 25l2-15" stroke="#ffd34d"/><path d="M44 28l6-14" stroke="#e0473b"/></g><path d="M18 30h28" stroke="#8a5a2b" stroke-width="5"/>`;
+     ex=eyes()+`<path d="M22 41h5M37 41h5" stroke="#e0473b" stroke-width="2"/>`+mouth();break;
+   case 'yusha':body=robe('#2f6fc0')+`<path d="M52 8v60" stroke="#c9ced8" stroke-width="5"/><path d="M46 46h12" stroke="#c99a2b" stroke-width="4"/>`;
+     hat=`<path d="M18 34l3-12 5 6 4-10 4 10 5-6 4 12z" fill="#c9762b"/>`;ex=eyes()+mouth();break;
+   case 'mahou':body=robe('#2b3a8c');hat=`<path d="M14 32h36l-14-28z" fill="#2b3a8c"/><path d="M12 32h40" stroke="#2b3a8c" stroke-width="4"/><circle cx="36" cy="16" r="2" fill="#ffd34d"/>`;
+     ex=eyes(39)+`<path d="M24 46q8 14 16 0z" fill="#eee"/>`;break;
+   case 'ginyu':body=robe('#2f8a5a')+`<ellipse cx="50" cy="66" rx="8" ry="10" fill="#c98a3b"/><path d="M50 56l6-14" stroke="#7a4a1a" stroke-width="3"/>`;
+     hat=`<path d="M18 30q14-12 28 0z" fill="#2f8a5a"/><path d="M40 26q10-14 14-10" stroke="#e0473b" stroke-width="3" fill="none"/>`;ex=eyes()+`<ellipse cx="32" cy="45" rx="3" ry="2.5" fill="#1c1a24"/>`;break;
+   case 'souryo':body=robe('#f2efe6')+`<path d="M32 56v24M26 64h12" stroke="#4fb3a5" stroke-width="3"/>`;
+     hat=`<path d="M22 28q0-14 10-16q10 2 10 16z" fill="#f2efe6" stroke="#cfc8b6"/>`;ex=`<path d="M25 37q2-2 4 0M35 37q2-2 4 0" stroke="#1c1a24" stroke-width="1.6" fill="none"/>`+mouth(44,3);break;
+   case 'sarary':body=robe('#3a3f55')+`<path d="M32 54l-3 4 3 14 3-14z" fill="#e0473b"/>`;
+     head=`<circle cx="32" cy="38" r="13" fill="#f5b1a0"/>`;hat=`<path d="M19 30q13-6 26 0" stroke="#e0473b" stroke-width="4" fill="none"/><path d="M44 30l8-4M44 30l6 6" stroke="#e0473b" stroke-width="3"/>`;
+     ex=`<path d="M25 37h4M35 37h4" stroke="#1c1a24" stroke-width="1.8"/><path d="M28 45q4-3 8 0" stroke="#1c1a24" stroke-width="1.6" fill="none"/>`;break;
+   case 'ninja':body=robe('#22222a');head=`<circle cx="32" cy="38" r="13" fill="#22222a"/><rect x="21" y="33" width="22" height="7" rx="3" fill="${skin}"/>`;ex=eyes(36.5);break;
+   case 'ryu':body=robe('#7a2b2b')+`<path d="M44 58q10-10 14 0q-4-2-6 2q-2-4-8-2z" fill="#4fa35a"/><circle cx="54" cy="56" r="1.5" fill="#1c1a24"/>`;
+     hat=`<path d="M19 34q0-16 13-16t13 16z" fill="#8a8f9c"/><path d="M19 28l-8-8 4 12zM45 28l8-8-4 12z" fill="#c9ced8"/>`;ex=eyes(39)+mouth(45,3);break;
+   case 'you':body=robe('#4a4a58')+`<path d="M24 58q8 8 16 0" stroke="#8a8a98" stroke-width="2" fill="none"/>`;hat=`<path d="M19 34q0-16 13-16t13 16q-6-6-13-6t-13 6z" fill="#2a2a30"/>`;ex=eyes()+`<path d="M28 45h8" stroke="#1c1a24" stroke-width="1.6"/>`;break;
+   case 'yoru':body=robe('#e0473b');hat=`<path d="M19 30q13-14 26 0q-4-4-13-4t-13 4z" fill="#1c1a24"/>`;ex=`<circle cx="27" cy="37" r="3" fill="#1c1a24"/><circle cx="37" cy="37" r="3" fill="#1c1a24"/><path d="M25 44q7 7 14 0z" fill="#1c1a24"/>`;break;
+   case 'asai':body=robe('#2f6fc0');hat=`<path d="M19 32q2-14 13-14t13 14l-3-6h-20z" fill="#5a3a1a"/>`;ex=`<rect x="22" y="33" width="9" height="7" rx="2" fill="none" stroke="#1c1a24" stroke-width="1.6"/><rect x="33" y="33" width="9" height="7" rx="2" fill="none" stroke="#1c1a24" stroke-width="1.6"/>`+`<path d="M28 45h8" stroke="#1c1a24" stroke-width="1.6"/>`;break;
+   case 'driver':body=robe('#2b2b38')+`<path d="M32 54v20" stroke="#ffd34d" stroke-width="2"/>`;hat=`<path d="M18 30q14-12 28 0z" fill="#2b2b38"/><path d="M16 30h32" stroke="#1c1c24" stroke-width="4"/>`;ex=eyes()+`<path d="M26 46h12" stroke="#1c1a24" stroke-width="1.6"/>`;break;
+   case 'mail':return `<svg viewBox="0 0 64 80"><rect x="10" y="22" width="44" height="34" rx="3" fill="#e8e2ff" stroke="#8f86b3" stroke-width="2"/><path d="M10 24l22 18 22-18" stroke="#8f86b3" stroke-width="2" fill="none"/></svg>`;
+  }
+  return `<svg viewBox="0 0 64 80" xmlns="http://www.w3.org/2000/svg">${body}${head}${hat}${ex}</svg>`;
+}
+const inner=id=>face(id).replace(/<\/?svg[^>]*>/g,'');
+
+/* ---------- 共通 ---------- */
+const $=s=>document.getElementById(s);
+const show=id=>document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on',s.id===id));
+const yen=n=>'¥'+Math.round(n).toLocaleString();
+$('titleArt').innerHTML=['uranai','shaman','yusha','ryu'].map(i=>`<div style="width:62px">${face(i)}</div>`).join('');
+$('pickWho').innerHTML=face('driver');
+
+let picks=[],order=[];
+function renderPick(){
+  $('grid').innerHTML=P.map(p=>`<div class="card ${picks.includes(p.id)?'sel':''}" data-id="${p.id}"><span class="ck">✓</span>${face(p.id)}<div class="nm">${p.nm}</div><div class="ds">${dirName[p.dir]} ${p.km}km</div></div>`).join('');
+  const seats=['you',...picks];
+  $('seats').innerHTML=['助手席','後ろ左','後ろ中','後ろ右'].map((l,i)=>`<div class="seat"><span class="lb">${l}</span>${seats[i]?face(seats[i]):'空き'}</div>`).join('');
+  $('nextBtn').disabled=picks.length<3;
+}
+$('grid').addEventListener('click',e=>{
+  const c=e.target.closest('.card');if(!c)return;const id=c.dataset.id,i=picks.indexOf(id);
+  if(i>=0){picks.splice(i,1);$('pickBub').textContent='運転手「降りるの？ はい」';}
+  else if(picks.length<3){picks.push(id);$('pickBub').textContent=byId[id].pick;
+    if(picks.length===3)$('pickBub').textContent='運転手「…で、どういう集まり？」';}
+  else $('pickBub').textContent='運転手「もう満員だよ」';
+  renderPick();
+});
+$('startBtn').onclick=()=>{show('pick');renderPick()};
+$('nextBtn').onclick=()=>{order=[];show('order');renderOrder()};
+$('reBtn').onclick=()=>{show('pick');renderPick()};
+$('againBtn').onclick=()=>{order=[];show('order');renderOrder()};
+
+/* ---------- 地図 ---------- */
+const S=15;const pos=p=>{const s=S,ox=100,oy=200;const d=p.km;
+  return p.dir==='N'?[ox,oy-d*s]:p.dir==='E'?[ox+d*s,oy]:[ox-d*s,oy]};
+const ST=[100,200];
+function mapSVG(ids,route){
+  const riders=['you',...picks];
+  let s=`<svg viewBox="0 70 300 165" preserveAspectRatio="xMidYMid meet">
+  <g stroke="#2e3354" stroke-width="10" stroke-linecap="round"><path d="M100 200V85M100 200H292M100 200H8"/></g>
+  <g stroke="#454c7a" stroke-width="1.5" stroke-dasharray="4 6"><path d="M100 200V85M100 200H292M100 200H8"/></g>
+  <g font-size="9" fill="#8f86b3" font-weight="700"><text x="106" y="90">北</text><text x="282" y="218">東</text><text x="6" y="218">西</text></g>
+  <rect x="86" y="204" width="28" height="14" rx="3" fill="#ffd34d"/><text x="100" y="214" font-size="8" text-anchor="middle" font-weight="900" fill="#2b2347">駅</text>`;
+  if(route){s+=`<path d="M${[ST,...route].map(p=>p.join(' ')).join('L')}" stroke="#ffd34d" stroke-width="2.5" fill="none" opacity=".7"/>`;}
+  riders.forEach(id=>{const [x,y]=pos(byId[id]);const n=order.indexOf(id);
+    s+=`<g transform="translate(${x-13} ${y-34})"><circle cx="13" cy="15" r="14" fill="${id==='you'?'#ffd34d':'#fdfbf6'}"/><g transform="translate(1 -1) scale(.38)">${inner(id)}</g>${n>=0?`<circle cx="25" cy="3" r="7" fill="#e0473b"/><text x="25" y="6.5" font-size="9" text-anchor="middle" fill="#fff" font-weight="900">${n+1}</text>`:''}</g><path d="M${x} ${y-5}v5" stroke="#fff" stroke-width="2"/>`;
+  });
+  s+=`<g id="car" transform="translate(${ST[0]} ${ST[1]})"><rect x="-11" y="-7" width="22" height="12" rx="4" fill="#ffd34d" stroke="#2b2347" stroke-width="1.5"/><rect x="-4" y="-11" width="8" height="5" rx="1" fill="#e0473b"/></g></svg>`;
+  return s;
+}
+function renderOrder(){
+  const riders=['you',...picks];
+  $('orderRow').innerHTML=riders.map(id=>{const n=order.indexOf(id);const p=byId[id];
+    return `<div class="ob ${n>=0?'set':''}" data-id="${id}"><span class="n">${n+1}</span>${face(id)}<span class="d">${p.nm}・${dirName[p.dir]}${p.km}km</span></div>`}).join('');
+  $('map1').innerHTML=mapSVG(riders,order.length?order.map(id=>pos(byId[id])):null);
+  $('goBtn').disabled=order.length<4;
+  $('est').textContent=order.length===4?yen(simulate(false).you):'―';
+}
+$('orderRow').addEventListener('click',e=>{
+  const b=e.target.closest('.ob');if(!b)return;const id=b.dataset.id,i=order.indexOf(id);
+  if(i>=0)order.splice(i);else order.push(id);renderOrder();
+});
+
+/* ---------- 料金計算 ---------- */
+const dist=(a,b)=>Math.hypot(a[0]-b[0],a[1]-b[1])/S;
+function simulate(withRandom,seed){
+  const has=id=>picks.includes(id);
+  const rnd=withRandom?Math.random:()=>0.99;
+  const ev=[];let share=Object.fromEntries(['you',...picks].map(i=>[i,0]));
+  let aboard=['you',...picks];
+  if(has('mahou')){aboard=aboard.filter(i=>i!=='mahou');ev.push({who:'mahou',at:0,t:'魔法使い「では、わたしはここで」(ワープで消えた)'});}
+  if(has('yusha')){aboard.forEach(i=>share[i]+=1000/aboard.length);ev.push({who:'yusha',at:0,t:'ガリッ。勇者の剣が天井に刺さった。修理代¥1,000、全員で割り勘'});}
+  // 初乗り
+  aboard.forEach(i=>share[i]+=BASE/aboard.length);
+  let cur=ST,total=BASE+(has('yusha')?1000:0),bardBonus=0,detour=0,vomit=false;
+  const mult=has('shaman')?0.8:1;
+  if(has('shaman'))ev.push({who:'shaman',at:0,t:'シャーマン「祖霊が運転手と交渉した。深夜割増はなしだ」 →料金2割引き'});
+  const route=order.filter(i=>aboard.includes(i));
+  if(has('uranai')&&byId[route[0]].dir!=='W'){detour=1.5;ev.push({who:'uranai',at:0,t:'占い師「最初に西へ行かぬと凶」 →西へ1.5km寄り道'});}
+  if(has('ginyu')){const good=rnd()<0.5;bardBonus=good?-500:0;
+    ev.push({who:'ginyu',at:0,t:good?'吟遊詩人が一曲歌った。運転手が泣いて¥500まけてくれた':'吟遊詩人が一曲歌った。運転手「降りてもらえます？」(まけてはくれない)'});
+    if(good)aboard.forEach(i=>share[i]-=500/aboard.length);}
+  const legs=[];
+  route.forEach((id,k)=>{
+    const to=pos(byId[id]);let d=dist(cur,to)+(k===0?detour:0);
+    if(has('ryu'))d*=0.9;
+    const cost=d*PER_KM*mult;total+=cost;
+    aboard.forEach(i=>share[i]+=cost/aboard.length);
+    if(id==='sarary'||(aboard.includes('sarary')&&k===route.length-1)){}
+    legs.push({id,to,d,cost});
+    if(id==='ninja'){const s=share.ninja;share.ninja=0;const rest=aboard.filter(i=>i!=='ninja');rest.forEach(i=>share[i]+=s/rest.length);
+      ev.push({who:'ninja',at:k+1,t:`忍者、降りた瞬間に消えた。忍者の分${yen(s)}は残った人で割り勘`});}
+    aboard=aboard.filter(i=>i!==id);
+    if(id==='sarary'&&!has('souryo')&&rnd()<0.6){vomit=true;}
+    if(id==='sarary'&&has('souryo'))ev.push({who:'souryo',at:k+1,t:'僧侶が会社員に回復をかけた。無事に降りていった'});
+  });
+  if(vomit){const last=route[route.length-1];share[last]+=5000;total+=5000;
+    const k=route.length;ev.push({who:'driver',at:k,t:`運転手「…後ろの座席、誰か吐いてるね」 最後まで乗ってた${byId[last].nm}に清掃代¥5,000`});}
+  if(has('ryu'))ev.push({who:'ryu',at:1,t:'竜騎士の竜が並走して道を空けさせた。距離1割短縮'});
+  return {you:Math.max(0,share.you),share,legs,ev,total,vomit,route};
+}
+
+/* ---------- 走行 ---------- */
+const SOLO=BASE+HOME.km*PER_KM;
+let R=null;
+$('goBtn').onclick=()=>{
+  R=simulate(true);show('ride');
+  $('map2svg').innerHTML=mapSVG(['you',...picks],R.route.map(id=>pos(byId[id])));
+  rideAnim();
+};
+function popEvt(e){return new Promise(r=>{$('evtWho').innerHTML=face(e.who);$('evtBub').textContent=e.t;$('evt').classList.add('on');setTimeout(()=>{$('evt').classList.remove('on');setTimeout(r,200)},2300)})}
+async function rideAnim(){
+  const car=$('map2svg').querySelector('#car');let cur=ST,shown=BASE;$('meter').textContent=yen(shown);
+  let mins=45;
+  for(const e of R.ev.filter(e=>e.at===0))await popEvt(e);
+  for(let k=0;k<R.route.length;k++){
+    const leg=R.legs[k];
+    await new Promise(res=>{const t0=performance.now(),D=900+leg.d*120,from=cur;
+      const st=()=>{const q=Math.min(1,(performance.now()-t0)/D);
+        const x=from[0]+(leg.to[0]-from[0])*q,y=from[1]+(leg.to[1]-from[1])*q;
+        car.setAttribute('transform',`translate(${x} ${y})`);
+        $('meter').textContent=yen(shown+leg.cost*q);
+        if(q<1)requestAnimationFrame(st);else{shown+=leg.cost;res()}};st()});
+    cur=leg.to;mins+=Math.round(leg.d*2.5);$('rideClock').textContent=`${Math.floor(mins/60)}:${String(mins%60).padStart(2,'0')}`;
+    const nm=byId[leg.id].nm;
+    await popEvt({who:leg.id,t:leg.id==='you'?'あなた、ここで降りる。':`${nm}、ここで降りる。`});
+    for(const e of R.ev.filter(e=>e.at===k+1))await popEvt(e);
+  }
+  finish();
+}
+
+/* ---------- 結果 ---------- */
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+let queue=[],pt=null;
+function finish(){
+  show('result');
+  const you=R.you,save=SOLO-you;
+  $('rt').textContent=yen(you);
+  $('rr').textContent=save>0?`一人で乗るより${yen(save)}おトク`:`一人で乗った方が${yen(-save)}安かった`;
+  const Y=s=>['l','yoru','夜田',s],A=s=>['r','asai','朝井',s],H=s=>['h','mail','投稿',s];
+  const names=picks.map(i=>byId[i].nm);
+  const L=[Y('続いてのおたより。ラジオネーム「あなた」さん'),H(`「終電を逃したので、${names.join('、')}と相乗りしました」`),A('なんでそのメンバーが駅前にいるんですか')];
+  const pool={
+    uranai:[Y('占い師が寄り道させたらしいですよ'),A('ナビに従ってください')],
+    shaman:[Y('シャーマンが料金交渉してくれたって'),A('誰とですか'),Y('ご先祖と')],
+    yusha:[A('剣、天井に刺さってるじゃないですか'),Y('伝説の剣ってだいたい何かに刺さってるからね')],
+    mahou:[Y('魔法使い、乗った瞬間ワープで帰ったって'),A('じゃあ最初から乗らないでください')],
+    ginyu:[Y('吟遊詩人がずっと歌ってたと'),A('深夜のタクシーで弾き語り、地獄ですよ')],
+    souryo:[A('僧侶がいるのは大きいですね'),Y('酔っ払いに回復かけてくれるからね'),A('それはただの介抱です')],
+    sarary:[Y('ネクタイを頭に巻いた人がいますね'),A('それ職業じゃないんですよ')],
+    ninja:[Y('忍者、降りた瞬間に消えたって'),A('払ってから消えてください')],
+    ryu:[Y('竜騎士もいますね'),A('竜で帰ってくださいよ'),Y('飲んでるから乗れないんだって'),A('飲竜運転')]
+  };
+  picks.slice().sort(()=>Math.random()-.5).slice(0,2).forEach(i=>L.push(...pool[i]));
+  if(R.vomit&&R.route[R.route.length-1]==='you')L.push(A('で、最後まで乗ってたあなたが清掃代払ってます'),Y('一番かわいそう'));
+  if(save>800)L.push(Y(`結局${yen(you)}で帰れたらしいです`),A('パーティーが謎すぎて褒めにくい'));
+  else if(save<0)L.push(A('一人で乗った方が安いじゃないですか'),Y('でも楽しかったでしょ'),A('楽しくはないでしょ'));
+  else L.push(Y('ちょっとだけ安くなってますね'),A('このメンバーで、ちょっとだけ'));
+  const other=pick(['「私の相乗りパーティーは、ケンタウロス、ケンタウロス、ケンタウロスです」','「私の相乗りパーティーは、全員タクシー運転手です」','「私の相乗りパーティーは、占い師、占い師の師匠、師匠の師匠です」','「私のパーティーは、運転手を説得できる交渉人を先頭に…」']);
+  L.push(Y('あとこれ、似たようなのがいっぱい来てて'),H(other),A('募集してないんですよ！'));
+  play(L);
+}
+function play(L){const box=$('radio');box.querySelectorAll('.ln').forEach(n=>n.remove());$('rbtns').style.visibility='hidden';$('hint').style.display='block';queue=L.slice();next()}
+function next(){
+  clearTimeout(pt);
+  if(!queue.length){$('rbtns').style.visibility='visible';$('hint').style.display='none';return}
+  const [side,who,name,s]=queue.shift();const box=$('radio');const d=document.createElement('div');
+  d.className='ln '+(side==='r'?'r':side==='h'?'h':'');
+  d.innerHTML=`<div class="who">${face(who)}</div><div class="bub"><span class="nm">${name}</span>${s}</div>`;
+  box.insertBefore(d,$('hint'));
+  while(box.querySelectorAll('.ln').length>1&&box.querySelector('.ln').offsetTop<30)box.querySelector('.ln').remove();
+  pt=setTimeout(next,side==='h'?2400:1500);
+}
+$('radio').addEventListener('click',()=>{if(queue.length)next()});
+</script>
+</body>
+</html>
