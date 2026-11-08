@@ -4,343 +4,525 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <title>終電後、相乗り。</title>
-<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
+<meta property="og:title" content="終電後、相乗り。">
+<meta property="og:description" content="異世界の仲間とタクシーを割り勘する。一番安く帰る方法は?">
+<link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
-html,body{height:100%;overflow:hidden;background:#0d0f1c;font-family:"Zen Maru Gothic",sans-serif;color:#1c1a24}
-#app{height:100dvh;max-width:480px;margin:0 auto;position:relative;overflow:hidden;
-  padding:calc(env(safe-area-inset-top) + 8px) 10px calc(env(safe-area-inset-bottom) + 10px);
-  background:linear-gradient(#1a1d36,#2b2347);display:flex;flex-direction:column;color:#f2eee6}
+html,body{height:100%;overflow:hidden;background:#000;font-family:"DotGothic16",monospace;color:#fff}
+#app{height:100dvh;max-width:480px;margin:0 auto;position:relative;overflow:hidden;background:#06081a;
+  padding:calc(env(safe-area-inset-top) + 8px) 10px calc(env(safe-area-inset-bottom) + 10px);display:flex;flex-direction:column}
 .screen{display:none;flex:1;flex-direction:column;min-height:0;gap:8px}
 .screen.on{display:flex}
-.bar{display:flex;align-items:center;justify-content:space-between;font-size:12px;color:#c9c0e0;gap:8px}
-.onair{background:#e0473b;color:#fff;border-radius:4px;padding:1px 6px;font-weight:900;letter-spacing:.1em;font-size:11px;flex:none}
-.clock{font-weight:900;color:#ffd34d}
-.btn{border:none;border-radius:14px;font-family:inherit;font-weight:900;font-size:20px;padding:13px 24px;
-  background:#ffd34d;color:#2b2347;box-shadow:0 4px 0 #b08a1a;cursor:pointer}
-.btn:active{transform:translateY(3px);box-shadow:0 1px 0 #b08a1a}
-.btn:disabled{background:#5d5677;box-shadow:0 4px 0 #3d3755;color:#9d97b3}
-.btn.sub{background:#8f86b3;box-shadow:0 4px 0 #5d5677;color:#fff;font-size:15px;padding:11px 16px}
+.win{background:#0a1150;border:3px solid #fff;border-radius:8px;box-shadow:0 0 0 2px #0a1150,inset 0 0 0 2px #0a1150;padding:8px 10px;position:relative}
+.msg{font-size:16px;line-height:1.55;min-height:62px;display:flex;align-items:center}
+.msg span{white-space:pre-line}
+.head{font-size:13px;color:#ffd84a;letter-spacing:.1em;display:flex;justify-content:space-between;align-items:center;padding-right:44px;min-height:24px}
+.btn{font-family:inherit;font-size:20px;color:#fff;background:#0a1150;border:3px solid #fff;border-radius:8px;padding:12px 10px;cursor:pointer;width:100%;position:relative;box-shadow:0 0 0 2px #0a1150}
+.btn::before{content:"▶";position:absolute;left:14px;opacity:0}
+.btn:not(:disabled)::before{opacity:1;animation:blink 1s steps(2) infinite}
+.btn:disabled{color:#55608f;border-color:#55608f}
+.btn:active:not(:disabled){background:#1b2a8a}
+.btn.red{background:#7a1020;border-color:#ffd84a;color:#ffd84a;font-size:22px;padding:14px 10px}
+.btn.red:disabled{background:#2a1020;color:#6a5050;border-color:#6a5050}
+@keyframes blink{50%{opacity:0}}
+#mute{position:absolute;top:calc(env(safe-area-inset-top) + 6px);right:8px;z-index:20;width:40px;height:40px;border-radius:8px;border:2px solid #fff;background:#0a1150;color:#fff;font-size:18px;font-family:inherit}
 /* title */
-#title{justify-content:center;align-items:center;text-align:center;gap:16px}
-#title h1{font-size:42px;font-weight:900;line-height:1.15}
-#title h1 small{display:block;font-size:14px;color:#c9c0e0;margin-bottom:6px}
-#title p{font-size:14px;line-height:1.75;color:#ddd6ee}
+#title{justify-content:center;gap:14px}
+#title h1{font-size:44px;line-height:1.15;text-align:center;font-weight:400;text-shadow:3px 3px 0 #2a3aa8}
+#title .sub{text-align:center;font-size:13px;color:#ffd84a;letter-spacing:.2em}
+#titleArt{display:flex;justify-content:center;gap:2px}
+#titleArt div{width:58px}
+.queue{font-size:12px;color:#8f9ad0;text-align:center}
 /* pick */
-.cab{background:#ffd34d;border-radius:14px;padding:6px 8px;color:#2b2347}
-.cab .seats{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
-.seat{aspect-ratio:1.1;background:#fff6d6;border-radius:9px;display:flex;align-items:center;justify-content:center;position:relative;font-size:10px;color:#a8902f}
-.seat svg{height:88%;width:auto}
-.seat .lb{position:absolute;top:1px;left:4px;font-size:9px;font-weight:900;color:#8a6d10}
+.party{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.slot{background:#0a1150;border:2px solid #fff;border-radius:6px;height:76px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;font-size:11px;cursor:pointer;overflow:hidden;position:relative}
+.slot svg{height:56px;width:auto}
+.slot.empty{border-style:dashed;border-color:#55608f;color:#55608f;justify-content:center}
+.slot .x{position:absolute;top:1px;right:4px;font-size:15px;color:#ffd84a}
 .grid{flex:1;min-height:0;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);gap:6px}
-.card{background:#fdfbf6;border-radius:12px;border:3px solid transparent;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  min-height:0;cursor:pointer;position:relative;padding:2px;color:#1c1a24}
-.card svg{flex:1;min-height:0;width:100%;max-height:66%}
-.card .nm{font-size:13px;font-weight:900;line-height:1.1}
-.card .ds{font-size:10px;color:#6d6585;font-weight:700}
-.card.sel{border-color:#ffd34d;background:#fff3c4}
-.card .ck{position:absolute;top:3px;right:5px;background:#e0473b;color:#fff;border-radius:50%;width:18px;height:18px;font-size:11px;font-weight:900;display:none;align-items:center;justify-content:center}
-.card.sel .ck{display:flex}
-.talk{display:flex;gap:6px;align-items:center;min-height:44px}
-.talk .who{flex:none;width:38px;height:38px;border-radius:50%;background:#fdfbf6;overflow:hidden}
-.talk .bub{flex:1;background:#fdfbf6;color:#1c1a24;border-radius:12px;padding:7px 10px;font-size:13px;line-height:1.35;font-weight:700}
+.card{background:#0a1150;border:2px solid #fff;border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:0;cursor:pointer;position:relative;padding:2px}
+.card svg{flex:1;min-height:0;width:100%}
+.card .nm{font-size:14px;line-height:1.1}
+.card .ds{font-size:11px;color:#8f9ad0}
+.card .cnt{position:absolute;top:2px;right:4px;color:#ffd84a;font-size:14px}
+.card:active{background:#1b2a8a}
 /* map */
-.map{flex:none;aspect-ratio:300/165;background:#151829;border-radius:14px;position:relative;overflow:hidden}
+.map{flex:none;height:200px;background:#050716;border:3px solid #fff;border-radius:8px;position:relative;overflow:hidden}
 .map svg{width:100%;height:100%;display:block}
-.order{flex:1;min-height:0;display:grid;grid-template-columns:repeat(2,1fr);grid-template-rows:repeat(2,1fr);gap:6px}
-.ob{background:#fdfbf6;border-radius:12px;border:3px solid transparent;min-height:0;position:relative;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#1c1a24}
+.meter{position:absolute;top:6px;left:8px;background:#000;border:2px solid #3a7a3a;border-radius:4px;padding:2px 8px;color:#7dff9a;font-size:18px}
+.meter small{font-size:10px;color:#3a9a4a;display:block;line-height:1}
+.odo{position:absolute;top:6px;right:8px;font-size:12px;color:#8f9ad0;text-align:right}
+.order{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;flex:none;height:170px}
+.ob{background:#0a1150;border:2px solid #fff;border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;cursor:pointer;position:relative;min-height:0;overflow:hidden}
 .ob svg{flex:1;min-height:0;width:100%}
-.ob .d{font-size:12px;padding-bottom:4px;font-weight:900;color:#6d6585}
-.ob .n{position:absolute;top:4px;left:6px;background:#e0473b;color:#fff;border-radius:50%;width:28px;height:28px;font-size:16px;font-weight:900;display:none;align-items:center;justify-content:center}
-.ob.set{border-color:#ffd34d}.ob.set .n{display:flex}
-.est{display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:700;color:#ddd6ee}
-.est b{font-size:22px;color:#ffd34d}
-.evt{flex:1;min-height:0;display:flex;flex-direction:column;gap:10px;align-items:center;justify-content:center;opacity:0;transition:opacity .2s;text-align:center}
-.evt.on{opacity:1}
-.evt .who{flex:none;width:120px;height:120px;border-radius:50%;background:#fdfbf6;overflow:hidden}
-.evt .bub{background:#fdfbf6;color:#1c1a24;border-radius:14px;padding:12px 14px;font-size:17px;font-weight:700;line-height:1.5}
-.meterbox{position:absolute;top:8px;right:8px;background:#0b0d18;border:2px solid #3a3f63;border-radius:8px;padding:4px 8px;font-weight:900;color:#7dff9a;font-size:15px;font-family:monospace}
+.ob .d{font-size:11px;padding-bottom:3px;text-align:center;line-height:1.2}
+.ob .n{position:absolute;top:3px;left:4px;background:#ffd84a;color:#0a1150;border-radius:4px;width:24px;height:24px;font-size:16px;display:none;align-items:center;justify-content:center}
+.ob.set{border-color:#ffd84a}.ob.set .n{display:flex}
+.est{font-size:15px;line-height:1.6}
+.est b{color:#ffd84a;font-size:20px;font-weight:400}
+.est .s{font-size:12px;color:#8f9ad0}
+/* ride */
+.stat{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:6px}
+.st{text-align:center;font-size:12px;line-height:1.35;position:relative}
+.st .who{height:40px;display:flex;justify-content:center}
+.st .who svg{height:40px;width:auto}
+.st .pay{font-size:15px;color:#fff}
+.st.off{color:#55608f}.st.off .pay{color:#8f9ad0}
+.st.off .who{opacity:.35}
+.st.gone .who{opacity:0}
+.st.you .pay{color:#ffd84a}
+.st .tag{font-size:10px;color:#ffd84a;min-height:13px}
+.spacer{flex:1}
 /* result */
-.score{text-align:center}
-.score .t{font-size:42px;font-weight:900;line-height:1;color:#ffd34d}
-.score .r{font-size:13px;font-weight:700;color:#ddd6ee;margin-top:3px}
-.radio{flex:1;min-height:0;background:#0f1120;border-radius:14px;padding:32px 10px 18px;display:flex;flex-direction:column;justify-content:flex-end;gap:7px;overflow:hidden;cursor:pointer;position:relative}
-.radio .head{position:absolute;top:8px;left:10px;display:flex;gap:6px;align-items:center;color:#c9c0e0;font-size:11px;font-weight:700}
-.ln{display:flex;gap:6px;align-items:flex-end;animation:up .25s}
-.ln.r{flex-direction:row-reverse}
-.ln .who{flex:none;width:34px;height:34px;border-radius:50%;background:#fdfbf6;overflow:hidden}
-.ln .bub{max-width:80%;background:#fdfbf6;color:#1c1a24;border-radius:12px;padding:6px 10px;font-size:14px;line-height:1.4;font-weight:700}
-.ln.r .bub{background:#ffe9a8}
-.ln.h .bub{background:#e8e2ff;border:2px dashed #8f86b3;max-width:92%;font-size:13px}
-.ln .nm{font-size:10px;color:#8f86b3;display:block;margin-bottom:1px}
-@keyframes up{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
-#rbtns{visibility:hidden;display:flex;gap:8px;justify-content:center}
-.hint{font-size:10px;color:#6d6585;text-align:center;position:absolute;bottom:4px;left:0;right:0}
+#result{gap:6px}
+#result .big{margin-right:46px}
+.big{text-align:center;padding:10px 6px 8px}
+.big .l{font-size:13px;color:#8f9ad0}
+.big .y{font-size:46px;line-height:1.1;color:#ffd84a}
+.big .h{font-size:15px;margin-top:2px}
+.big .cmp{font-size:12px;color:#8f9ad0;margin-top:2px}
+.title2{font-size:15px;text-align:center;color:#fff}
+.title2 b{color:#ffd84a;font-weight:400}
+.note{font-size:13px;color:#fff;text-align:center;line-height:1.5}
+.rank{flex:none;overflow:hidden;padding:6px 8px}
+#share{margin-top:auto}
+.rank h3{font-size:12px;color:#ffd84a;font-weight:400;margin-bottom:3px}
+.rk{display:grid;grid-template-columns:30px 70px 1fr;gap:4px;font-size:12px;line-height:1.3;padding:3px 0;border-bottom:1px dashed #2a3580;align-items:baseline}
+.rk:last-child{border-bottom:none}
+.rk .y{text-align:right;padding-right:6px}
+.rk.me{color:#ffd84a}
+.rk.dq{color:#b8c0ec}
+.rk small{font-size:10px;color:#b8c0ec}
+.btnrow{display:flex;gap:6px}
+.btnrow .btn{font-size:15px;padding:10px 4px}
+.btnrow .btn::before{display:none}
+a.btn{text-decoration:none;text-align:center;display:block}
+.share{background:#fff;color:#000;border-color:#fff}
 </style>
 </head>
 <body>
 <div id="app">
+<button id="mute" aria-label="音">♪</button>
 
 <section class="screen on" id="title">
-  <div class="bar" style="width:100%"><span class="onair">ON AIR</span><span>深夜ラジオ「夜田と朝井の二時です」</span></div>
-  <h1><small>リスナー投稿企画</small>終電後、<br>相乗り。</h1>
-  <div id="titleArt" style="display:flex;gap:6px;justify-content:center"></div>
-  <p>終電を逃した駅前。タクシー乗り場には<br>なぜか異世界の人たちが並んでいる。<br>あなたと相乗りする<b>3人</b>と<b>降りる順番</b>を決めて、<br>家(東6km)まで<b>安く</b>帰れ。</p>
-  <button class="btn" id="startBtn">相乗り相手を選ぶ</button>
+  <div class="sub">EXP.003</div>
+  <h1>終電後、<br>相乗り。</h1>
+  <div id="titleArt"></div>
+  <div class="queue">― タクシー乗り場 ―</div>
+  <div class="win msg"><span>終電を のがした!
+家(東6km)まで、なかまと わりかんで かえれ。</span></div>
+  <button class="btn" id="startBtn">なかまを えらぶ</button>
 </section>
 
 <section class="screen" id="pick">
-  <div class="bar"><span class="onair">ON AIR</span><span>① 相乗りする3人を選べ</span><span class="clock">0:42</span></div>
-  <div class="cab"><div class="seats" id="seats"></div></div>
+  <div class="head"><span>なかまを 3人 えらべ</span></div>
+  <div class="party" id="party"></div>
   <div class="grid" id="grid"></div>
-  <div class="talk"><div class="who" id="pickWho"></div><div class="bub" id="pickBub">運転手「どこまで？ …え、全員バラバラ？」</div></div>
-  <button class="btn" id="nextBtn" disabled>降りる順番を決める</button>
+  <div class="win msg"><span id="pickMsg">乗り場に 並んでいるのは
+いせかいの ひとびと だけだ。</span></div>
+  <button class="btn" id="nextBtn" disabled>おりる じゅんばんへ</button>
 </section>
 
 <section class="screen" id="order">
-  <div class="bar"><span class="onair">ON AIR</span><span>② 降りる順にタップ</span><span class="clock">0:44</span></div>
-  <div class="map" id="map1"></div>
+  <div class="head"><span>おりる じゅんに タップ</span></div>
+  <div class="map" id="map1" style="flex:1;min-height:200px"></div>
   <div class="order" id="orderRow"></div>
-  <div class="est"><span>あなたの支払い(見込み・ハプニング抜き)</span><b id="est">―</b></div>
-  <button class="btn" id="goBtn" disabled>出発</button>
+  <div class="win est" id="est">あなたの しはらい みこみ:<b>―</b><br><span class="s">ひとりで乗ると ¥2,900(深夜料金)</span></div>
+  <button class="btn" id="goBtn" disabled>しゅっぱつ</button>
 </section>
 
 <section class="screen" id="ride">
-  <div class="bar"><span class="onair">ON AIR</span><span>③ 走行中…</span><span class="clock" id="rideClock">0:45</span></div>
-  <div class="map" id="map2"><div id="map2svg" style="position:absolute;inset:0"></div><div class="meterbox" id="meter">¥0</div></div>
-  <div class="evt" id="evt"><div class="who" id="evtWho"></div><div class="bub" id="evtBub"></div></div>
+  <div class="head"><span id="rideHead">そうこう中</span></div>
+  <div class="map" id="map2" style="flex:1;min-height:200px"><div id="map2svg" style="position:absolute;inset:0"></div><div class="meter"><small>深夜 2割増</small><span id="meter">¥500</span></div><div class="odo" id="odo">走行 0.0km</div></div>
+  <div class="win stat" id="stat"></div>
+  <div class="win msg"><span id="rideMsg"></span></div>
+  <button class="btn red" id="exitBtn">ここで おります</button>
 </section>
 
 <section class="screen" id="result">
-  <div class="bar"><span class="onair">ON AIR</span><span>投稿が読まれた</span></div>
-  <div class="score"><div class="t" id="rt"></div><div class="r" id="rr"></div></div>
-  <div class="radio" id="radio"><div class="head"><span class="onair">ON AIR</span>夜田 × 朝井</div><div class="hint" id="hint">タップで早送り</div></div>
-  <div id="rbtns"><button class="btn" id="againBtn">別の順番で</button><button class="btn sub" id="reBtn">メンバーから選びなおす</button></div>
+  <div class="win big"><div class="l">あなたの しはらい</div><div class="y" id="rY"></div><div class="h" id="rH"></div><div class="cmp" id="rC"></div></div>
+  <div class="title2" id="rT"></div>
+  <div class="note" id="rN"></div>
+  <div class="win stat" id="rStat"></div>
+  <div class="win rank"><h3>ほかの ちょうせんしゃ</h3><div id="rank"></div></div>
+  <a class="btn share" id="share" target="_blank" rel="noopener">Xでシェア</a>
+  <div class="btnrow"><button class="btn" id="againBtn">おなじ なかまで</button><button class="btn" id="reBtn">なかまを えらびなおす</button></div>
 </section>
-
 </div>
-<script>
-const BASE=500, PER_KM=450, HOME={dir:'E',km:6};
-const P=[
- {id:'uranai',nm:'占い師',dir:'N',km:3,pick:'占い師「今宵は西が吉と出ております」'},
- {id:'shaman',nm:'シャーマン',dir:'N',km:5,pick:'シャーマン「祖霊も一緒に乗ります」運転手「何人？」'},
- {id:'yusha', nm:'勇者',  dir:'E',km:4,pick:'勇者「剣は抜けないので、このままで」'},
- {id:'mahou', nm:'魔法使い',dir:'E',km:8,pick:'魔法使い「割り勘の計算は得意です」'},
- {id:'ginyu', nm:'吟遊詩人',dir:'W',km:2,pick:'吟遊詩人「道中、一曲いかが」運転手「結構です」'},
- {id:'souryo',nm:'僧侶',  dir:'W',km:5,pick:'僧侶「酔い覚まし(回復)かけられます」'},
- {id:'sarary',nm:'酔った会社員',dir:'E',km:3,pick:'会社員「だいじょぶ、だいじょぶ…うっ」'},
- {id:'ninja', nm:'忍者',  dir:'W',km:4,pick:'忍者「……」(もう座ってる)'},
- {id:'ryu',   nm:'竜騎士',dir:'E',km:12,pick:'竜騎士「竜は飲んだら乗れないので」'}
-];
-const byId=Object.fromEntries(P.map(p=>[p.id,p]));
-byId.you={id:'you',nm:'あなた',dir:'E',km:6};
-const dirName={N:'北',E:'東',W:'西'};
 
-/* ---------- 絵 ---------- */
+<script>
+/* ===== 現実の数字(東京23区・深夜割増) ===== */
+const BASE=500, BASE_KM=0.913, STEP_KM=0.213, STEP_YEN=100, CLEAN=10000;
+const HOME=[6,0];
+const fareSolo=d=>BASE+(d>BASE_KM?Math.ceil((d-BASE_KM)/STEP_KM-1e-9)*STEP_YEN:0);
+const SOLO=fareSolo(6); // ¥2,900
+
+const JOBS=[
+ {id:'ninja', nm:'忍者',     dir:'W',km:4, pick:'忍者「降りたら、消えます」\n(もう座っている)'},
+ {id:'mahou', nm:'魔法使い', dir:'E',km:8, pick:'魔法使い「割り勘の計算は\n得意です」'},
+ {id:'yusha', nm:'勇者',     dir:'N',km:3, pick:'勇者「道中、しらべたい所が\nあるのですが」'},
+ {id:'souryo',nm:'僧侶',     dir:'W',km:5, pick:'僧侶「酔い覚ましの回復、\nかけられます」'},
+ {id:'yoi',   nm:'酔いどれ戦士',dir:'E',km:3, pick:'酔いどれ戦士「だいじょぶ、\nだいじょぶ…うっ」'},
+ {id:'uranai',nm:'占い師',   dir:'N',km:5, pick:'占い師「今宵は 西が吉と\n出ております」'},
+ {id:'ginyu', nm:'吟遊詩人', dir:'W',km:2, pick:'吟遊詩人「道中、一曲いかが」\n運転手「結構です」'},
+ {id:'ryu',   nm:'竜騎士',   dir:'N',km:8, pick:'竜騎士「竜は 飲んだら\n乗れないので」'},
+ {id:'shonin',nm:'商人',     dir:'E',km:4, pick:'商人「割り勘の計算は\nわたしが 引き受けましょう」'}
+];
+const J=Object.fromEntries(JOBS.map(j=>[j.id,j]));
+const dirName={N:'北',E:'東',W:'西'};
+const ptOf=j=>j.dir==='N'?[0,-j.km]:j.dir==='E'?[j.km,0]:[-j.km,0];
+
+/* ===== 絵 ===== */
 function face(id){
   const skin='#f6d3b0';let body='',head=`<circle cx="32" cy="38" r="13" fill="${skin}"/>`,hat='',ex='';
-  const eyes=(y=37)=>`<circle cx="27" cy="${y}" r="2.2" fill="#1c1a24"/><circle cx="37" cy="${y}" r="2.2" fill="#1c1a24"/>`;
-  const mouth=(y=44,w=4)=>`<path d="M${32-w} ${y}q${w} 3 ${w*2} 0" stroke="#1c1a24" stroke-width="1.6" fill="none"/>`;
+  const eyes=(y=37)=>`<rect x="25" y="${y-2}" width="4" height="4" fill="#1c1a24"/><rect x="35" y="${y-2}" width="4" height="4" fill="#1c1a24"/>`;
+  const mouth=(y=44)=>`<rect x="29" y="${y}" width="6" height="2" fill="#1c1a24"/>`;
   const robe=c=>`<path d="M10 64q22-14 44 0v16H10z" fill="${c}"/>`;
   switch(id){
    case 'uranai':body=robe('#5b3b8c');hat=`<path d="M16 42q0-26 16-26t16 26q-6-14-16-14t-16 14z" fill="#3e2366"/>`;
-     ex=eyes()+mouth(44,3)+`<circle cx="50" cy="66" r="8" fill="#b9e6ff" stroke="#fff" stroke-width="1.5"/>`;break;
-   case 'shaman':body=robe('#8a5a2b')+`<path d="M14 66l36 0" stroke="#e0473b" stroke-width="3"/>`;
-     hat=`<g stroke-width="4" stroke-linecap="round"><path d="M20 28l-6-14" stroke="#e0473b"/><path d="M26 25l-2-15" stroke="#ffd34d"/><path d="M32 24v-16" stroke="#4fb3a5"/><path d="M38 25l2-15" stroke="#ffd34d"/><path d="M44 28l6-14" stroke="#e0473b"/></g><path d="M18 30h28" stroke="#8a5a2b" stroke-width="5"/>`;
-     ex=eyes()+`<path d="M22 41h5M37 41h5" stroke="#e0473b" stroke-width="2"/>`+mouth();break;
+     ex=eyes()+mouth()+`<circle cx="50" cy="66" r="8" fill="#b9e6ff" stroke="#fff" stroke-width="1.5"/>`;break;
    case 'yusha':body=robe('#2f6fc0')+`<path d="M52 8v60" stroke="#c9ced8" stroke-width="5"/><path d="M46 46h12" stroke="#c99a2b" stroke-width="4"/>`;
      hat=`<path d="M18 34l3-12 5 6 4-10 4 10 5-6 4 12z" fill="#c9762b"/>`;ex=eyes()+mouth();break;
-   case 'mahou':body=robe('#2b3a8c');hat=`<path d="M14 32h36l-14-28z" fill="#2b3a8c"/><path d="M12 32h40" stroke="#2b3a8c" stroke-width="4"/><circle cx="36" cy="16" r="2" fill="#ffd34d"/>`;
+   case 'mahou':body=robe('#2b3a8c')+`<path d="M8 40v40" stroke="#8a5a2b" stroke-width="3"/><circle cx="8" cy="38" r="4" fill="#ff5ad8"/>`;hat=`<path d="M14 32h36l-14-28z" fill="#3b4abc"/><path d="M12 32h40" stroke="#3b4abc" stroke-width="4"/><circle cx="36" cy="16" r="2" fill="#ffd84a"/>`;
      ex=eyes(39)+`<path d="M24 46q8 14 16 0z" fill="#eee"/>`;break;
    case 'ginyu':body=robe('#2f8a5a')+`<ellipse cx="50" cy="66" rx="8" ry="10" fill="#c98a3b"/><path d="M50 56l6-14" stroke="#7a4a1a" stroke-width="3"/>`;
      hat=`<path d="M18 30q14-12 28 0z" fill="#2f8a5a"/><path d="M40 26q10-14 14-10" stroke="#e0473b" stroke-width="3" fill="none"/>`;ex=eyes()+`<ellipse cx="32" cy="45" rx="3" ry="2.5" fill="#1c1a24"/>`;break;
    case 'souryo':body=robe('#f2efe6')+`<path d="M32 56v24M26 64h12" stroke="#4fb3a5" stroke-width="3"/>`;
-     hat=`<path d="M22 28q0-14 10-16q10 2 10 16z" fill="#f2efe6" stroke="#cfc8b6"/>`;ex=`<path d="M25 37q2-2 4 0M35 37q2-2 4 0" stroke="#1c1a24" stroke-width="1.6" fill="none"/>`+mouth(44,3);break;
-   case 'sarary':body=robe('#3a3f55')+`<path d="M32 54l-3 4 3 14 3-14z" fill="#e0473b"/>`;
-     head=`<circle cx="32" cy="38" r="13" fill="#f5b1a0"/>`;hat=`<path d="M19 30q13-6 26 0" stroke="#e0473b" stroke-width="4" fill="none"/><path d="M44 30l8-4M44 30l6 6" stroke="#e0473b" stroke-width="3"/>`;
-     ex=`<path d="M25 37h4M35 37h4" stroke="#1c1a24" stroke-width="1.8"/><path d="M28 45q4-3 8 0" stroke="#1c1a24" stroke-width="1.6" fill="none"/>`;break;
+     hat=`<path d="M22 28q0-14 10-16q10 2 10 16z" fill="#f2efe6" stroke="#cfc8b6"/>`;ex=`<path d="M25 37q2-2 4 0M35 37q2-2 4 0" stroke="#1c1a24" stroke-width="2" fill="none"/>`+mouth();break;
+   case 'yoi':body=robe('#8a3a2b')+`<rect x="44" y="56" width="12" height="14" rx="2" fill="#ffd84a" stroke="#fff"/><rect x="45" y="54" width="10" height="4" fill="#fff"/>`;
+     head=`<circle cx="32" cy="38" r="13" fill="#f59a8a"/>`;hat=`<path d="M18 34q0-18 14-18t14 18z" fill="#9aa0ad"/><path d="M18 34h28" stroke="#6a707d" stroke-width="3"/><path d="M18 26l-8-6M46 26l8-6" stroke="#e8e8e8" stroke-width="3"/>`;
+     ex=`<path d="M24 38h5M35 38h5" stroke="#1c1a24" stroke-width="2"/><path d="M28 45q4-3 8 0" stroke="#1c1a24" stroke-width="2" fill="none"/><circle cx="23" cy="43" r="2.5" fill="#e0473b" opacity=".6"/><circle cx="41" cy="43" r="2.5" fill="#e0473b" opacity=".6"/>`;break;
    case 'ninja':body=robe('#22222a');head=`<circle cx="32" cy="38" r="13" fill="#22222a"/><rect x="21" y="33" width="22" height="7" rx="3" fill="${skin}"/>`;ex=eyes(36.5);break;
    case 'ryu':body=robe('#7a2b2b')+`<path d="M44 58q10-10 14 0q-4-2-6 2q-2-4-8-2z" fill="#4fa35a"/><circle cx="54" cy="56" r="1.5" fill="#1c1a24"/>`;
-     hat=`<path d="M19 34q0-16 13-16t13 16z" fill="#8a8f9c"/><path d="M19 28l-8-8 4 12zM45 28l8-8-4 12z" fill="#c9ced8"/>`;ex=eyes(39)+mouth(45,3);break;
-   case 'you':body=robe('#4a4a58')+`<path d="M24 58q8 8 16 0" stroke="#8a8a98" stroke-width="2" fill="none"/>`;hat=`<path d="M19 34q0-16 13-16t13 16q-6-6-13-6t-13 6z" fill="#2a2a30"/>`;ex=eyes()+`<path d="M28 45h8" stroke="#1c1a24" stroke-width="1.6"/>`;break;
-   case 'yoru':body=robe('#e0473b');hat=`<path d="M19 30q13-14 26 0q-4-4-13-4t-13 4z" fill="#1c1a24"/>`;ex=`<circle cx="27" cy="37" r="3" fill="#1c1a24"/><circle cx="37" cy="37" r="3" fill="#1c1a24"/><path d="M25 44q7 7 14 0z" fill="#1c1a24"/>`;break;
-   case 'asai':body=robe('#2f6fc0');hat=`<path d="M19 32q2-14 13-14t13 14l-3-6h-20z" fill="#5a3a1a"/>`;ex=`<rect x="22" y="33" width="9" height="7" rx="2" fill="none" stroke="#1c1a24" stroke-width="1.6"/><rect x="33" y="33" width="9" height="7" rx="2" fill="none" stroke="#1c1a24" stroke-width="1.6"/>`+`<path d="M28 45h8" stroke="#1c1a24" stroke-width="1.6"/>`;break;
-   case 'driver':body=robe('#2b2b38')+`<path d="M32 54v20" stroke="#ffd34d" stroke-width="2"/>`;hat=`<path d="M18 30q14-12 28 0z" fill="#2b2b38"/><path d="M16 30h32" stroke="#1c1c24" stroke-width="4"/>`;ex=eyes()+`<path d="M26 46h12" stroke="#1c1a24" stroke-width="1.6"/>`;break;
-   case 'mail':return `<svg viewBox="0 0 64 80"><rect x="10" y="22" width="44" height="34" rx="3" fill="#e8e2ff" stroke="#8f86b3" stroke-width="2"/><path d="M10 24l22 18 22-18" stroke="#8f86b3" stroke-width="2" fill="none"/></svg>`;
+     hat=`<path d="M19 34q0-16 13-16t13 16z" fill="#8a8f9c"/><path d="M19 28l-8-8 4 12zM45 28l8-8-4 12z" fill="#c9ced8"/>`;ex=eyes(39)+mouth(45);break;
+   case 'shonin':body=robe('#c98a3b')+`<path d="M44 60h14v14H44z" fill="#7a4a1a"/><g fill="#ffd84a"><circle cx="48" cy="64" r="1.6"/><circle cx="53" cy="64" r="1.6"/><circle cx="48" cy="70" r="1.6"/><circle cx="53" cy="70" r="1.6"/></g>`;
+     hat=`<path d="M18 30q14-14 28 0z" fill="#2f6f5a"/><path d="M16 30h32" stroke="#2f6f5a" stroke-width="3"/>`;ex=eyes()+`<path d="M26 44q6 4 12 0" stroke="#1c1a24" stroke-width="2" fill="none"/><path d="M24 48q8 6 16 0" stroke="#5a3a1a" stroke-width="3" fill="none"/>`;break;
+   case 'you':body=robe('#4a4a58')+`<path d="M24 58q8 8 16 0" stroke="#8a8a98" stroke-width="2" fill="none"/>`;hat=`<path d="M19 34q0-16 13-16t13 16q-6-6-13-6t-13 6z" fill="#2a2a30"/>`;ex=eyes()+mouth(45);break;
+   case 'driver':body=robe('#2b2b38')+`<path d="M32 54v20" stroke="#ffd84a" stroke-width="2"/>`;hat=`<path d="M18 30q14-12 28 0z" fill="#2b2b38"/><path d="M16 30h32" stroke="#555" stroke-width="4"/>`;ex=eyes()+`<rect x="26" y="45" width="12" height="2" fill="#1c1a24"/>`;break;
   }
   return `<svg viewBox="0 0 64 80" xmlns="http://www.w3.org/2000/svg">${body}${head}${hat}${ex}</svg>`;
 }
 const inner=id=>face(id).replace(/<\/?svg[^>]*>/g,'');
 
-/* ---------- 共通 ---------- */
+/* ===== 音 ===== */
+let AC=null,master=null,muted=false,bgmOn=false;
+function audio(){
+  if(AC)return;try{AC=new (window.AudioContext||window.webkitAudioContext)();master=AC.createGain();master.gain.value=muted?0:.6;master.connect(AC.destination);startBGM()}catch(e){}
+}
+function tone(f,dur,type='square',vol=.1,when=0,slide=0){
+  if(!AC)return;const t=AC.currentTime+when,o=AC.createOscillator(),g=AC.createGain();
+  o.type=type;o.frequency.setValueAtTime(f,t);if(slide)o.frequency.exponentialRampToValueAtTime(slide,t+dur);
+  g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.0001,t+dur);o.connect(g);g.connect(master);o.start(t);o.stop(t+dur+.02);
+}
+function noise(dur,vol=.3,when=0,freq=500){
+  if(!AC)return;const t=AC.currentTime+when,b=AC.createBuffer(1,Math.floor(AC.sampleRate*dur),AC.sampleRate),d=b.getChannelData(0);
+  for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,2);
+  const s=AC.createBufferSource(),f=AC.createBiquadFilter(),g=AC.createGain();f.type='lowpass';f.frequency.value=freq;g.gain.value=vol;s.buffer=b;s.connect(f);f.connect(g);g.connect(master);s.start(t);
+}
+const SFX={
+  tap(){tone(990,.05,'square',.06)},
+  ok(){tone(660,.07,'square',.07);tone(990,.1,'square',.07,.07)},
+  no(){tone(180,.15,'square',.07)},
+  tick(){tone(2200,.03,'square',.03)},
+  door(){noise(.18,.4,0,900);tone(140,.12,'sine',.25)},
+  vanish(){tone(1200,.25,'triangle',.07,0,200)},
+  warp(){[400,600,900,1300,1800].forEach((f,i)=>tone(f,.08,'triangle',.06,i*.05))},
+  bad(){[330,262,196].forEach((f,i)=>tone(f,.2,'square',.07,i*.15))},
+  vomit(){noise(.6,.5,0,300);tone(120,.5,'sawtooth',.06,0,60)},
+  heal(){[523,659,784,1047].forEach((f,i)=>tone(f,.12,'triangle',.07,i*.07))},
+  coin(){tone(1800,.05,'square',.05);tone(2400,.08,'square',.05,.05)},
+  win(){[523,659,784,659,784,1047].forEach((f,i)=>tone(f,.14,'square',.07,i*.1))},
+  lose(){[392,330,262,196].forEach((f,i)=>tone(f,.25,'triangle',.1,i*.2))}
+};
+/* BGM:深夜のフィールド曲(Web Audioの簡易ループ。Flow MusicのBGMに差し替え予定) */
+function startBGM(){
+  if(bgmOn||!AC)return;bgmOn=true;
+  const bpm=96,b=60/bpm;let step=0,next=AC.currentTime+.1;
+  const bg=AC.createGain();bg.gain.value=.35;bg.connect(master);
+  const chords=[[220,262,330],[175,220,262],[196,247,294],[165,208,247]];
+  const mel=[440,0,523,494,440,0,392,0, 349,0,440,392,349,0,330,0, 392,0,494,440,392,0,330,0, 330,0,415,0,494,0,0,0];
+  function n(f,t,d,type,v){const o=AC.createOscillator(),g=AC.createGain();o.type=type;o.frequency.value=f;g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g);g.connect(bg);o.start(t);o.stop(t+d+.05)}
+  setInterval(()=>{
+    while(next<AC.currentTime+.3){
+      const bar=Math.floor(step/8)%4,c=chords[bar],s=step%8;
+      if(s%2===0)n(c[0]/2,next,b*.9,'triangle',.22);
+      if(s===0||s===4)c.forEach(f=>n(f,next,b*1.8,'square',.025));
+      const m=mel[step%32];if(m)n(m,next,b*.45,'square',.035);
+      next+=b/2;step++;
+    }
+  },100);
+}
+const muteBtn=document.getElementById('mute');
+muteBtn.onclick=e=>{e.stopPropagation();audio();muted=!muted;master&&(master.gain.value=muted?0:.6);muteBtn.textContent=muted?'×':'♪'};
+document.addEventListener('pointerdown',audio,{once:true});
+
+/* ===== 共通 ===== */
 const $=s=>document.getElementById(s);
 const show=id=>document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on',s.id===id));
-const yen=n=>'¥'+Math.round(n).toLocaleString();
-$('titleArt').innerHTML=['uranai','shaman','yusha','ryu'].map(i=>`<div style="width:62px">${face(i)}</div>`).join('');
-$('pickWho').innerHTML=face('driver');
+const yen=n=>(n<0?'-':'')+'¥'+Math.abs(Math.round(n)).toLocaleString();
+$('titleArt').innerHTML=['ninja','yoi','mahou','souryo','ryu'].map(i=>`<div>${face(i)}</div>`).join('');
+let T0=0;
 
-let picks=[],order=[];
+/* ===== なかま選び ===== */
+let picks=[];
+function partyMembers(){
+  const cnt={},tot={};picks.forEach(p=>tot[p]=(tot[p]||0)+1);
+  const m=[{key:'you',job:'you',nm:'あなた',pt:HOME,dest:'東6km'}];
+  picks.forEach(p=>{cnt[p]=(cnt[p]||0)+1;const j=J[p];
+    m.push({key:p+cnt[p],job:p,nm:j.nm+(tot[p]>1?'ABC'[cnt[p]-1]:''),pt:ptOf(j),dest:dirName[j.dir]+j.km+'km'})});
+  return m;
+}
 function renderPick(){
-  $('grid').innerHTML=P.map(p=>`<div class="card ${picks.includes(p.id)?'sel':''}" data-id="${p.id}"><span class="ck">✓</span>${face(p.id)}<div class="nm">${p.nm}</div><div class="ds">${dirName[p.dir]} ${p.km}km</div></div>`).join('');
-  const seats=['you',...picks];
-  $('seats').innerHTML=['助手席','後ろ左','後ろ中','後ろ右'].map((l,i)=>`<div class="seat"><span class="lb">${l}</span>${seats[i]?face(seats[i]):'空き'}</div>`).join('');
+  const cnt={};picks.forEach(p=>cnt[p]=(cnt[p]||0)+1);
+  $('grid').innerHTML=JOBS.map(j=>`<div class="card" data-id="${j.id}">${cnt[j.id]?`<span class="cnt">×${cnt[j.id]}</span>`:''}${face(j.id)}<div class="nm">${j.nm}</div><div class="ds">${dirName[j.dir]}${j.km}km</div></div>`).join('');
+  const m=partyMembers();
+  $('party').innerHTML=[0,1,2,3].map(i=>m[i]?`<div class="slot" data-i="${i}">${i?'<span class="x">×</span>':''}${face(m[i].job)}<span>${m[i].nm}</span></div>`:`<div class="slot empty">あき</div>`).join('');
   $('nextBtn').disabled=picks.length<3;
 }
 $('grid').addEventListener('click',e=>{
-  const c=e.target.closest('.card');if(!c)return;const id=c.dataset.id,i=picks.indexOf(id);
-  if(i>=0){picks.splice(i,1);$('pickBub').textContent='運転手「降りるの？ はい」';}
-  else if(picks.length<3){picks.push(id);$('pickBub').textContent=byId[id].pick;
-    if(picks.length===3)$('pickBub').textContent='運転手「…で、どういう集まり？」';}
-  else $('pickBub').textContent='運転手「もう満員だよ」';
+  const c=e.target.closest('.card');if(!c)return;const id=c.dataset.id;
+  if(picks.length<3){picks.push(id);SFX.tap();
+    $('pickMsg').textContent=picks.length===3?'運転手「…で、どういう集まり?」':J[id].pick;}
+  else{SFX.no();$('pickMsg').textContent='運転手「もう満員です」\n(なかまを タップで はずせる)';}
   renderPick();
 });
-$('startBtn').onclick=()=>{show('pick');renderPick()};
-$('nextBtn').onclick=()=>{order=[];show('order');renderOrder()};
-$('reBtn').onclick=()=>{show('pick');renderPick()};
-$('againBtn').onclick=()=>{order=[];show('order');renderOrder()};
+$('party').addEventListener('click',e=>{
+  const s=e.target.closest('.slot');if(!s||!s.dataset.i||s.dataset.i==='0')return;
+  picks.splice(+s.dataset.i-1,1);SFX.tap();$('pickMsg').textContent='運転手「降りるの? はい」';renderPick();
+});
+$('startBtn').onclick=()=>{audio();SFX.ok();T0=performance.now();show('pick');renderPick()};
+$('nextBtn').onclick=()=>{SFX.ok();order=[];show('order');renderOrder()};
 
-/* ---------- 地図 ---------- */
-const S=15;const pos=p=>{const s=S,ox=100,oy=200;const d=p.km;
-  return p.dir==='N'?[ox,oy-d*s]:p.dir==='E'?[ox+d*s,oy]:[ox-d*s,oy]};
-const ST=[100,200];
-function mapSVG(ids,route){
-  const riders=['you',...picks];
-  let s=`<svg viewBox="0 70 300 165" preserveAspectRatio="xMidYMid meet">
-  <g stroke="#2e3354" stroke-width="10" stroke-linecap="round"><path d="M100 200V85M100 200H292M100 200H8"/></g>
-  <g stroke="#454c7a" stroke-width="1.5" stroke-dasharray="4 6"><path d="M100 200V85M100 200H292M100 200H8"/></g>
-  <g font-size="9" fill="#8f86b3" font-weight="700"><text x="106" y="90">北</text><text x="282" y="218">東</text><text x="6" y="218">西</text></g>
-  <rect x="86" y="204" width="28" height="14" rx="3" fill="#ffd34d"/><text x="100" y="214" font-size="8" text-anchor="middle" font-weight="900" fill="#2b2347">駅</text>`;
-  if(route){s+=`<path d="M${[ST,...route].map(p=>p.join(' ')).join('L')}" stroke="#ffd34d" stroke-width="2.5" fill="none" opacity=".7"/>`;}
-  riders.forEach(id=>{const [x,y]=pos(byId[id]);const n=order.indexOf(id);
-    s+=`<g transform="translate(${x-13} ${y-34})"><circle cx="13" cy="15" r="14" fill="${id==='you'?'#ffd34d':'#fdfbf6'}"/><g transform="translate(1 -1) scale(.38)">${inner(id)}</g>${n>=0?`<circle cx="25" cy="3" r="7" fill="#e0473b"/><text x="25" y="6.5" font-size="9" text-anchor="middle" fill="#fff" font-weight="900">${n+1}</text>`:''}</g><path d="M${x} ${y-5}v5" stroke="#fff" stroke-width="2"/>`;
+/* ===== 地図 ===== */
+// 1km = 20px。x:-6..9 / y:-8.6..1.4
+const SC=20,VB=[-6*SC,-8.6*SC,15*SC,10*SC];
+const P=p=>[p[0]*SC,p[1]*SC];
+function mapSVG(members,orderKeys,routePts){
+  let s=`<svg viewBox="${VB.join(' ')}" preserveAspectRatio="xMidYMid meet">
+  <g stroke="#1a2050" stroke-width="12" stroke-linecap="round"><path d="M0 0V-170M0 0H175M0 0H-115"/></g>
+  <g stroke="#3a4590" stroke-width="1.5" stroke-dasharray="4 6"><path d="M0 0V-170M0 0H175M0 0H-115"/></g>
+  <g font-size="10" fill="#55608f" font-family="DotGothic16"><text x="6" y="-160">北</text><text x="170" y="16">東</text><text x="-116" y="16">西</text></g>
+  <rect x="-16" y="5" width="32" height="15" rx="2" fill="#ffd84a"/><text x="0" y="16" font-size="10" text-anchor="middle" fill="#0a1150" font-family="DotGothic16">駅</text>
+  <g transform="translate(${HOME[0]*SC} 0)"><path d="M-9 -2l9-9 9 9v10h-18z" fill="#fff"/><rect x="-3" y="2" width="6" height="6" fill="#0a1150"/></g>`;
+  if(routePts&&routePts.length)s+=`<path d="M0 0L${routePts.map(p=>P(p).join(' ')).join('L')}" stroke="#ffd84a" stroke-width="2.5" fill="none" opacity=".55"/>`;
+  const seen={};
+  members.forEach(m=>{const [x,y]=P(m.pt);const k=x+','+y;const off=(seen[k]=(seen[k]||0)+1)-1;const n=orderKeys?orderKeys.indexOf(m.key):-1;
+    s+=`<g transform="translate(${x-12+off*16} ${y-30})"><circle cx="12" cy="13" r="12" fill="${m.job==='you'?'#ffd84a':'#fff'}"/><g transform="translate(0 -3) scale(.375)">${inner(m.job)}</g>${n>=0?`<rect x="18" y="-6" width="12" height="12" rx="2" fill="#e0473b"/><text x="24" y="4" font-size="10" text-anchor="middle" fill="#fff" font-family="DotGothic16">${n+1}</text>`:''}</g>`;
   });
-  s+=`<g id="car" transform="translate(${ST[0]} ${ST[1]})"><rect x="-11" y="-7" width="22" height="12" rx="4" fill="#ffd34d" stroke="#2b2347" stroke-width="1.5"/><rect x="-4" y="-11" width="8" height="5" rx="1" fill="#e0473b"/></g></svg>`;
+  s+=`<g id="you2" style="display:none"><circle r="9" fill="#ffd84a"/><g transform="translate(-9 -11) scale(.28)">${inner('you')}</g></g>`;
+  s+=`<g id="car"><rect x="-12" y="-7" width="24" height="13" rx="3" fill="#ffd84a" stroke="#0a1150" stroke-width="1.5"/><rect x="-5" y="-11" width="10" height="5" rx="1" fill="#e0473b"/><rect x="-8" y="-4" width="16" height="4" fill="#0a1150"/></g></svg>`;
   return s;
 }
+
+/* ===== 降りる順 ===== */
+let order=[],members=[];
 function renderOrder(){
-  const riders=['you',...picks];
-  $('orderRow').innerHTML=riders.map(id=>{const n=order.indexOf(id);const p=byId[id];
-    return `<div class="ob ${n>=0?'set':''}" data-id="${id}"><span class="n">${n+1}</span>${face(id)}<span class="d">${p.nm}・${dirName[p.dir]}${p.km}km</span></div>`}).join('');
-  $('map1').innerHTML=mapSVG(riders,order.length?order.map(id=>pos(byId[id])):null);
+  members=partyMembers();
+  $('orderRow').innerHTML=members.map(m=>{const n=order.indexOf(m.key);
+    return `<div class="ob ${n>=0?'set':''}" data-k="${m.key}"><span class="n">${n+1}</span>${face(m.job)}<span class="d">${m.nm}<br>${m.dest}</span></div>`}).join('');
+  $('map1').innerHTML=mapSVG(members,order,order.map(k=>members.find(m=>m.key===k).pt));
   $('goBtn').disabled=order.length<4;
-  $('est').textContent=order.length===4?yen(simulate(false).you):'―';
+  const b=$('est').querySelector('b');
+  if(order.length===4){const r=runSim(null);b.textContent=yen(r.pay.you);}
+  else b.textContent='―';
 }
 $('orderRow').addEventListener('click',e=>{
-  const b=e.target.closest('.ob');if(!b)return;const id=b.dataset.id,i=order.indexOf(id);
-  if(i>=0)order.splice(i);else order.push(id);renderOrder();
+  const b=e.target.closest('.ob');if(!b)return;const k=b.dataset.k,i=order.indexOf(k);
+  if(i>=0)order.splice(i);else order.push(k);SFX.tap();renderOrder();
 });
 
-/* ---------- 料金計算 ---------- */
-const dist=(a,b)=>Math.hypot(a[0]-b[0],a[1]-b[1])/S;
-function simulate(withRandom,seed){
-  const has=id=>picks.includes(id);
-  const rnd=withRandom?Math.random:()=>0.99;
-  const ev=[];let share=Object.fromEntries(['you',...picks].map(i=>[i,0]));
-  let aboard=['you',...picks];
-  if(has('mahou')){aboard=aboard.filter(i=>i!=='mahou');ev.push({who:'mahou',at:0,t:'魔法使い「では、わたしはここで」(ワープで消えた)'});}
-  if(has('yusha')){aboard.forEach(i=>share[i]+=1000/aboard.length);ev.push({who:'yusha',at:0,t:'ガリッ。勇者の剣が天井に刺さった。修理代¥1,000、全員で割り勘'});}
+/* ===== 割り勘エンジン(確定ルール) ===== */
+function makeSim(){
+  const R=members.map(m=>({...m,on:true,gone:false,paid:0,tag:''}));
+  const has=job=>R.some(r=>r.on&&r.job===job);
+  const S={R,pos:[0,0],odo:0,meterDist:0,nextTick:BASE_KM,meter:BASE,unpaid:0,vomit:false,healed:false,checked:0,
+    youOut:false,youOdo:null,youPt:null,done:false,targets:[],ev:[],last:null};
+  const on=()=>R.filter(r=>r.on);
+  const say=(t,k,who)=>S.ev.push({t,k,who});
+  const split=y=>{const a=on();a.forEach(r=>r.paid+=y/a.length)};
   // 初乗り
-  aboard.forEach(i=>share[i]+=BASE/aboard.length);
-  let cur=ST,total=BASE+(has('yusha')?1000:0),bardBonus=0,detour=0,vomit=false;
-  const mult=has('shaman')?0.8:1;
-  if(has('shaman'))ev.push({who:'shaman',at:0,t:'シャーマン「祖霊が運転手と交渉した。深夜割増はなしだ」 →料金2割引き'});
-  const route=order.filter(i=>aboard.includes(i));
-  if(has('uranai')&&byId[route[0]].dir!=='W'){detour=1.5;ev.push({who:'uranai',at:0,t:'占い師「最初に西へ行かぬと凶」 →西へ1.5km寄り道'});}
-  if(has('ginyu')){const good=rnd()<0.5;bardBonus=good?-500:0;
-    ev.push({who:'ginyu',at:0,t:good?'吟遊詩人が一曲歌った。運転手が泣いて¥500まけてくれた':'吟遊詩人が一曲歌った。運転手「降りてもらえます？」(まけてはくれない)'});
-    if(good)aboard.forEach(i=>share[i]-=500/aboard.length);}
-  const legs=[];
-  route.forEach((id,k)=>{
-    const to=pos(byId[id]);let d=dist(cur,to)+(k===0?detour:0);
-    if(has('ryu'))d*=0.9;
-    const cost=d*PER_KM*mult;total+=cost;
-    aboard.forEach(i=>share[i]+=cost/aboard.length);
-    if(id==='sarary'||(aboard.includes('sarary')&&k===route.length-1)){}
-    legs.push({id,to,d,cost});
-    if(id==='ninja'){const s=share.ninja;share.ninja=0;const rest=aboard.filter(i=>i!=='ninja');rest.forEach(i=>share[i]+=s/rest.length);
-      ev.push({who:'ninja',at:k+1,t:`忍者、降りた瞬間に消えた。忍者の分${yen(s)}は残った人で割り勘`});}
-    aboard=aboard.filter(i=>i!==id);
-    if(id==='sarary'&&!has('souryo')&&rnd()<0.6){vomit=true;}
-    if(id==='sarary'&&has('souryo'))ev.push({who:'souryo',at:k+1,t:'僧侶が会社員に回復をかけた。無事に降りていった'});
-  });
-  if(vomit){const last=route[route.length-1];share[last]+=5000;total+=5000;
-    const k=route.length;ev.push({who:'driver',at:k,t:`運転手「…後ろの座席、誰か吐いてるね」 最後まで乗ってた${byId[last].nm}に清掃代¥5,000`});}
-  if(has('ryu'))ev.push({who:'ryu',at:1,t:'竜騎士の竜が並走して道を空けさせた。距離1割短縮'});
-  return {you:Math.max(0,share.you),share,legs,ev,total,vomit,route};
+  split(BASE);
+  say('運転手「出しますよ。深夜料金です」','start');
+  // 魔法使い:乗った瞬間ワープ
+  R.filter(r=>r.job==='mahou').forEach(r=>{r.on=false;r.gone=true;r.tag='ワープ';say(`${r.nm}は ワープで かえった!\n(初乗りぶん ${yen(r.paid)} だけ はらった)`,'warp')});
+  // 経路
+  const ordered=order.map(k=>R.find(r=>r.key===k)).filter(r=>r.on);
+  if(R.some(r=>r.job==='uranai'&&r.on)&&!(ordered[0]&&ordered[0].pt[0]<0&&ordered[0].pt[1]===0)){
+    S.targets.push({pt:[-1.5,0],r:null,uranai:true});
+  }
+  ordered.forEach(r=>S.targets.push({pt:r.pt,r}));
+  S.has=has;S.on=on;S.say=say;S.split=split;
+  return S;
+}
+function dropOff(S,r,atStation){
+  const {say,split,on}=S;
+  // 最後の一人なら清掃代
+  r.on=false;
+  const rest=S.on();
+  if(rest.length===0&&S.vomit){r.paid+=CLEAN;r.tag='清掃代';say(`運転手「最後の方、清掃代 ${yen(CLEAN)} です」`,'clean',r.key)}
+  // 商人の端数切り上げ
+  const sh=S.R.find(x=>x.job==='shonin'&&(x.on||x===r));
+  if(sh&&sh!==r&&r.job!=='ninja'){const up=Math.ceil(r.paid/100-1e-9)*100,d=up-r.paid;if(d>0.5){r.paid=up;sh.paid-=d;}}
+  if(r.job==='ninja'){
+    const s=r.paid;r.paid=0;r.gone=true;r.tag='消えた';
+    if(rest.length){rest.forEach(x=>x.paid+=s/rest.length);say(`${r.nm}は 消えた!\n${yen(s)}は のこりの なかまで わりかん`,'ninja')}
+    else{S.unpaid+=s;say(`${r.nm}は 消えた!\n運転手「…払ってから消えてください」`,'ninja')}
+  }else if(r.job==='you'){
+    S.youOut=true;S.youOdo=S.odo;S.youPt=S.pos.slice();
+    const left=Math.hypot(HOME[0]-S.pos[0],HOME[1]-S.pos[1]);
+    if(S.odo<0.01)say('あなたは おりた。\n運転手「…ここ、乗り場ですけど」','youout');
+    else if(left<0.05)say('あなたは いえに ついた。','youout');
+    else say(`あなたは おりた。\n家まで あと ${left.toFixed(1)}km`,'youout');
+  }else{
+    say(`${r.nm}は おりた。`,'drop');
+  }
+  if(rest.length===0)S.done=true;
+}
+// ds km すすめる。イベントがあれば true
+function step(S,ds){
+  if(S.done)return;
+  const tg=S.targets[0];
+  if(!tg){S.done=true;return}
+  const dx=tg.pt[0]-S.pos[0],dy=tg.pt[1]-S.pos[1],dl=Math.hypot(dx,dy);
+  const mv=Math.min(ds,dl);
+  if(dl>0){S.pos[0]+=dx/dl*mv;S.pos[1]+=dy/dl*mv}
+  const before=S.odo;S.odo+=mv;
+  // 吟遊詩人:1〜2km はメーターが止まる
+  const bard=S.has('ginyu');
+  let paidMv=mv;
+  if(bard){const a=Math.max(before,1),b=Math.min(S.odo,2);if(b>a)paidMv-=b-a;
+    if(before<1&&S.odo>=1)S.say('吟遊詩人は うたいだした!\n運転手は メーターを とめた','bard');
+    if(before<2&&S.odo>=2)S.say('運転手「…いい歌でした」\n(メーター さいかい)','bard2');}
+  S.meterDist+=paidMv;
+  while(S.meterDist>=S.nextTick-1e-9){S.meter+=STEP_YEN;S.split(STEP_YEN);S.nextTick+=STEP_KM;S.tickFlag=true}
+  // 勇者:1kmごとに自販機をしらべる(待ち時間で+100円)
+  if(S.has('yusha')&&Math.floor(S.odo+1e-9)>Math.floor(before+1e-9)){
+    S.meter+=STEP_YEN;S.split(STEP_YEN);
+    const n=S.R.filter(r=>r.on&&r.job==='yusha').length;
+    S.say(`勇者${n>1?'たち':''}は 自販機の おつりぐちを しらべた!\n(待ち時間 メーター+${yen(STEP_YEN)})`,'yusha');
+  }
+  // 酔いどれ戦士:3km で吐く
+  if(!S.vomit&&!S.healed&&before<3&&S.odo>=3&&S.has('yoi')){
+    if(S.has('souryo')){S.healed=true;S.say('僧侶は 酔いどれ戦士を 回復した!\n(吐かずに すんだ)','heal')}
+    else{S.vomit=true;S.say('酔いどれ戦士は 吐いた!\n運転手「最後に降りる方に、清掃代を」','vomit')}
+  }
+  if(mv>=dl-1e-9){
+    S.targets.shift();
+    if(tg.uranai)S.say('占い師「西が吉と 出ております」\n(西へ 1.5km よりみち)','uranai');
+    else if(tg.r&&tg.r.on)dropOff(S,tg.r);
+  }
+}
+function youExit(S){const y=S.R.find(r=>r.job==='you');if(y.on){dropOff(S,y);S.targets=S.targets.filter(t=>t.r!==y)}}
+function finalize(S){
+  const pay={};S.R.forEach(r=>pay[r.key]=r.paid);
+  return {pay,R:S.R,unpaid:S.unpaid,vomit:S.vomit,youOdo:S.youOdo,youPt:S.youPt,events:S.ev,meter:S.meter};
+}
+function runSim(exitOdo){
+  const S=makeSim();
+  if(exitOdo===0)youExit(S);
+  let g=0;while(!S.done&&g++<10000){step(S,0.01);if(exitOdo!=null&&!S.youOut&&S.odo>=exitOdo)youExit(S)}
+  return finalize(S);
 }
 
-/* ---------- 走行 ---------- */
-const SOLO=BASE+HOME.km*PER_KM;
-let R=null;
-$('goBtn').onclick=()=>{
-  R=simulate(true);show('ride');
-  $('map2svg').innerHTML=mapSVG(['you',...picks],R.route.map(id=>pos(byId[id])));
-  rideAnim();
-};
-function popEvt(e){return new Promise(r=>{$('evtWho').innerHTML=face(e.who);$('evtBub').textContent=e.t;$('evt').classList.add('on');setTimeout(()=>{$('evt').classList.remove('on');setTimeout(r,200)},2300)})}
-async function rideAnim(){
-  const car=$('map2svg').querySelector('#car');let cur=ST,shown=BASE;$('meter').textContent=yen(shown);
-  let mins=45;
-  for(const e of R.ev.filter(e=>e.at===0))await popEvt(e);
-  for(let k=0;k<R.route.length;k++){
-    const leg=R.legs[k];
-    await new Promise(res=>{const t0=performance.now(),D=900+leg.d*120,from=cur;
-      const st=()=>{const q=Math.min(1,(performance.now()-t0)/D);
-        const x=from[0]+(leg.to[0]-from[0])*q,y=from[1]+(leg.to[1]-from[1])*q;
-        car.setAttribute('transform',`translate(${x} ${y})`);
-        $('meter').textContent=yen(shown+leg.cost*q);
-        if(q<1)requestAnimationFrame(st);else{shown+=leg.cost;res()}};st()});
-    cur=leg.to;mins+=Math.round(leg.d*2.5);$('rideClock').textContent=`${Math.floor(mins/60)}:${String(mins%60).padStart(2,'0')}`;
-    const nm=byId[leg.id].nm;
-    await popEvt({who:leg.id,t:leg.id==='you'?'あなた、ここで降りる。':`${nm}、ここで降りる。`});
-    for(const e of R.ev.filter(e=>e.at===k+1))await popEvt(e);
+/* ===== 走行 ===== */
+let SIM=null,running=false;
+$('goBtn').onclick=()=>{SFX.ok();startRide()};
+function renderStat(el,R){
+  el.innerHTML=R.map(r=>`<div class="st ${r.on?'':'off'} ${r.gone?'gone':''} ${r.job==='you'?'you':''}"><div class="who">${face(r.job)}</div><div>${r.nm}</div><div class="pay">${r.job==='ninja'&&r.gone?'¥0':yen(r.paid)}</div><div class="tag">${r.tag||(r.on?'':'おりた')}</div></div>`).join('');
+}
+function startRide(){
+  SIM=makeSim();show('ride');
+  $('map2svg').innerHTML=mapSVG(members,order,SIM.targets.map(t=>t.pt));
+  $('exitBtn').disabled=false;$('exitBtn').textContent='ここで おります';
+  $('rideHead').textContent='そうこう中 ― いつでも おりられる';
+  running=true;rideLoop();
+}
+$('exitBtn').onclick=()=>{if(!SIM||SIM.youOut)return;SFX.door();youExit(SIM);$('exitBtn').disabled=true};
+async function rideLoop(){
+  const car=()=>$('map2svg').querySelector('#car'),you2=()=>$('map2svg').querySelector('#you2');
+  let shown=0,last=performance.now();
+  const draw=()=>{const [x,y]=P(SIM.pos);car().setAttribute('transform',`translate(${x} ${y})`);
+    if(SIM.youOut){const g=you2();g.style.display='';const [a,b]=P(SIM.youPt);g.setAttribute('transform',`translate(${a} ${b+14})`)}
+    $('meter').textContent=yen(SIM.meter);$('odo').textContent='走行 '+SIM.odo.toFixed(1)+'km';renderStat($('stat'),SIM.R)};
+  const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+  draw();
+  // 出発前の間(ここで「おります」を押せば 駅前で降りられる)
+  await showEvents(draw,true);
+  await sleep(SIM.youOut?200:900);
+  while(!SIM.done){
+    await new Promise(r=>requestAnimationFrame(r));
+    const now=performance.now(),dt=Math.min(.05,(now-last)/1000);last=now;
+    const speed=SIM.youOut?4.5:1.8; // km/秒
+    let ds=speed*dt;
+    while(ds>0&&!SIM.done&&SIM.ev.length===0){const d=Math.min(ds,.01);step(SIM,d);ds-=d}
+    if(SIM.tickFlag){SIM.tickFlag=false;SFX.tick()}
+    draw();
+    if(SIM.ev.length){await showEvents(draw,false);last=performance.now()}
   }
+  draw();await sleep(500);
   finish();
 }
+async function showEvents(draw,first){
+  while(SIM.ev.length){
+    const e=SIM.ev.shift();
+    $('rideMsg').textContent=e.t;
+    ({warp:SFX.warp,ninja:SFX.vanish,vomit:SFX.vomit,heal:SFX.heal,clean:SFX.bad,youout:SFX.door,drop:SFX.door,yusha:SFX.coin,bard:SFX.heal,uranai:SFX.tap}[e.k]||(()=>{}))();
+    draw();
+    const fast=SIM.youOut&&e.k!=='youout';
+    await new Promise(r=>setTimeout(r,first?1100:fast?600:1000));
+    if(e.k==='youout'){$('exitBtn').disabled=true;$('exitBtn').textContent='(タクシーは 走っていった)';$('rideHead').textContent='その後の タクシー'}
+  }
+}
 
-/* ---------- 結果 ---------- */
-const pick=a=>a[Math.floor(Math.random()*a.length)];
-let queue=[],pt=null;
+/* ===== 結果 ===== */
+const OTHERS=[
+  {y:200,t:'駅前で降りて、乗り場の最後尾に並び直した'},
+  {y:4800,t:'占い師、占い師の師匠、師匠の師匠'},
+  {y:13400,t:'酔いどれ戦士×3。最後まで乗った'},
+  {y:null,t:'全員ケンタウロス',dq:'乗車定員の対象外'},
+  {y:null,t:'全員タクシー運転手',dq:'誰も客じゃない'}
+];
+let lastResult=null;
 function finish(){
+  const S=SIM;const res=finalize(S);const you=res.pay.you;
+  const left=Math.hypot(HOME[0]-S.youPt[0],HOME[1]-S.youPt[1]);
+  const atStation=S.youOdo<0.01,home=left<0.05;
   show('result');
-  const you=R.you,save=SOLO-you;
-  $('rt').textContent=yen(you);
-  $('rr').textContent=save>0?`一人で乗るより${yen(save)}おトク`:`一人で乗った方が${yen(-save)}安かった`;
-  const Y=s=>['l','yoru','夜田',s],A=s=>['r','asai','朝井',s],H=s=>['h','mail','投稿',s];
-  const names=picks.map(i=>byId[i].nm);
-  const L=[Y('続いてのおたより。ラジオネーム「あなた」さん'),H(`「終電を逃したので、${names.join('、')}と相乗りしました」`),A('なんでそのメンバーが駅前にいるんですか')];
-  const pool={
-    uranai:[Y('占い師が寄り道させたらしいですよ'),A('ナビに従ってください')],
-    shaman:[Y('シャーマンが料金交渉してくれたって'),A('誰とですか'),Y('ご先祖と')],
-    yusha:[A('剣、天井に刺さってるじゃないですか'),Y('伝説の剣ってだいたい何かに刺さってるからね')],
-    mahou:[Y('魔法使い、乗った瞬間ワープで帰ったって'),A('じゃあ最初から乗らないでください')],
-    ginyu:[Y('吟遊詩人がずっと歌ってたと'),A('深夜のタクシーで弾き語り、地獄ですよ')],
-    souryo:[A('僧侶がいるのは大きいですね'),Y('酔っ払いに回復かけてくれるからね'),A('それはただの介抱です')],
-    sarary:[Y('ネクタイを頭に巻いた人がいますね'),A('それ職業じゃないんですよ')],
-    ninja:[Y('忍者、降りた瞬間に消えたって'),A('払ってから消えてください')],
-    ryu:[Y('竜騎士もいますね'),A('竜で帰ってくださいよ'),Y('飲んでるから乗れないんだって'),A('飲竜運転')]
-  };
-  picks.slice().sort(()=>Math.random()-.5).slice(0,2).forEach(i=>L.push(...pool[i]));
-  if(R.vomit&&R.route[R.route.length-1]==='you')L.push(A('で、最後まで乗ってたあなたが清掃代払ってます'),Y('一番かわいそう'));
-  if(save>800)L.push(Y(`結局${yen(you)}で帰れたらしいです`),A('パーティーが謎すぎて褒めにくい'));
-  else if(save<0)L.push(A('一人で乗った方が安いじゃないですか'),Y('でも楽しかったでしょ'),A('楽しくはないでしょ'));
-  else L.push(Y('ちょっとだけ安くなってますね'),A('このメンバーで、ちょっとだけ'));
-  const other=pick(['「私の相乗りパーティーは、ケンタウロス、ケンタウロス、ケンタウロスです」','「私の相乗りパーティーは、全員タクシー運転手です」','「私の相乗りパーティーは、占い師、占い師の師匠、師匠の師匠です」','「私のパーティーは、運転手を説得できる交渉人を先頭に…」']);
-  L.push(Y('あとこれ、似たようなのがいっぱい来てて'),H(other),A('募集してないんですよ！'));
-  play(L);
+  $('rY').textContent=yen(you);
+  $('rH').textContent=home?'家に ついた':`家まで のこり ${left.toFixed(1)}km`;
+  $('rC').textContent=you<SOLO?`ひとりで乗るより ${yen(SOLO-you)} おトク`:`ひとりで乗れば ${yen(SOLO)} だった`;
+  let title,note;
+  const paidClean=res.R.find(r=>r.job==='you').tag==='清掃代';
+  if(atStation){title='駅前の覇者';note='※記録は 支払額のみで 判定します。\n帰宅は 判定に 含みません。'}
+  else if(paidClean){title='最後の乗客';note='※清掃代は 最後に降りた方の お支払いです。'}
+  else if(home&&you>=SOLO){title='ふつうに帰った人(割高)';note='※相乗りしないほうが 安かったようです。'}
+  else if(home){title='ふつうに帰った人';note='※最初に降りる人ほど、割り勘は 安くなります。'}
+  else {title='途中下車の人';note='※あなたの支払いは、降りた地点までの 割り勘です。'}
+  if(res.unpaid>0)note+=`\n運転手の未収 ${yen(res.unpaid)}`;
+  $('rT').innerHTML=`称号:<b>${title}</b>`;
+  $('rN').textContent=note;$('rN').style.whiteSpace='pre-line';
+  renderStat($('rStat'),res.R);
+  // ランキング
+  const meT=members.map(m=>m.nm).join('、');
+  const rows=OTHERS.filter(o=>o.y!=null).map(o=>({...o}));
+  rows.push({y:you,t:'あなた:'+members.slice(1).map(m=>m.nm).join('、')+(atStation?'(駅前で降りた)':home?'':'(途中で降りた)'),me:true});
+  rows.sort((a,b)=>a.y-b.y||(a.me?-1:1));
+  let html=rows.map((r,i)=>`<div class="rk ${r.me?'me':''}"><span>${i+1}位</span><span class="y">${yen(r.y)}</span><span>${r.t}</span></div>`).join('');
+  html+=OTHERS.filter(o=>o.y==null).map(o=>`<div class="rk dq"><span>失格</span><span class="y">¥0</span><span>${o.t} <small>※${o.dq}</small></span></div>`).join('');
+  $('rank').innerHTML=html;
+  const myRank=rows.findIndex(r=>r.me)+1;
+  (myRank===1?SFX.win:you>SOLO?SFX.lose:SFX.ok)();
+  // 共有
+  const ochi=atStation?'家に帰らないのが最安でした。':paidClean?'家に着いたのに、清掃代を払いました。':home?(you<SOLO?'ちゃんと家に帰りました。':'ひとりで乗ったほうが安かった。'):`家まであと${left.toFixed(1)}km、歩いてます。`;
+  const txt=`私の終電後パーティーは、${members.map(m=>m.nm).join('、')}です。記録:${yen(you)}(${home?'家に着いた':'家まで残り'+left.toFixed(1)+'km'})。${ochi}\n#sltm https://saltums.github.io/sltm-lab/EXP-003/`;
+  $('share').href='https://twitter.com/intent/tweet?text='+encodeURIComponent(txt);
+  lastResult={you,left,atStation,home,title,txt,ms:Math.round(performance.now()-T0),unpaid:res.unpaid};
+  window.__result=lastResult;
 }
-function play(L){const box=$('radio');box.querySelectorAll('.ln').forEach(n=>n.remove());$('rbtns').style.visibility='hidden';$('hint').style.display='block';queue=L.slice();next()}
-function next(){
-  clearTimeout(pt);
-  if(!queue.length){$('rbtns').style.visibility='visible';$('hint').style.display='none';return}
-  const [side,who,name,s]=queue.shift();const box=$('radio');const d=document.createElement('div');
-  d.className='ln '+(side==='r'?'r':side==='h'?'h':'');
-  d.innerHTML=`<div class="who">${face(who)}</div><div class="bub"><span class="nm">${name}</span>${s}</div>`;
-  box.insertBefore(d,$('hint'));
-  while(box.querySelectorAll('.ln').length>1&&box.querySelector('.ln').offsetTop<30)box.querySelector('.ln').remove();
-  pt=setTimeout(next,side==='h'?2400:1500);
-}
-$('radio').addEventListener('click',()=>{if(queue.length)next()});
+$('againBtn').onclick=()=>{SFX.ok();T0=performance.now();order=[];show('order');renderOrder()};
+$('reBtn').onclick=()=>{SFX.ok();T0=performance.now();picks=[];show('pick');renderPick()};
+$('share').addEventListener('click',()=>SFX.coin());
 </script>
 </body>
 </html>
