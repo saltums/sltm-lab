@@ -286,15 +286,18 @@ const $=id=>document.getElementById(id);const $$=q=>document.querySelectorAll(q)
 function snd(f,d=.08,type="square",v=.06){if(muted)return;try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();const o=ac.createOscillator(),g=ac.createGain();o.type=type;o.frequency.value=f;g.gain.value=v;g.gain.exponentialRampToValueAtTime(.001,ac.currentTime+d);o.connect(g).connect(ac.destination);o.start();o.stop(ac.currentTime+d)}catch(e){}}
 /* ---------- BGM ---------- */
 const BGM={field:'bgm_field.mp3',entry:'bgm_name.mp3',movie:'bgm_finale.mp3',result:'bgm_result.mp3'};
-const LOOP={field:1,entry:1};const VOL=.5;let bgmNow=null,bgmEl=null,muted=false;const bgmCache={};
-function fadeTo(el,to,ms,cb){const tok=(el._fade=(el._fade||0)+1),from=el.volume,t0=performance.now();const f=t=>{if(el._fade!==tok)return;const k=Math.min(1,(t-t0)/ms);el.volume=Math.max(0,Math.min(1,from+(to-from)*k));if(k<1)requestAnimationFrame(f);else cb&&cb()};requestAnimationFrame(f)}
+const LOOP={field:1,entry:1};const VOL=.5;let bgmNow=null,muted=false,bgmSrc=null,bgmGain=null,master=null;const bufs={},loading={};
+function AC(){ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state!=='running'&&!document.hidden)ac.resume().catch(()=>{});return ac}
+function out(){const c=AC();if(!master){master=c.createGain();master.gain.value=muted?0:1;master.connect(c.destination)}return master}
+function loadBgm(id){return loading[id]||(loading[id]=fetch(BGM[id]).then(r=>r.arrayBuffer()).then(b=>new Promise((ok,ng)=>AC().decodeAudioData(b,ok,ng))).then(d=>{bufs[id]=d}).catch(()=>{delete loading[id]}))}
 function playBgm(id){
- const src=BGM[id];if(!src||bgmNow===id)return;bgmNow=id;
- const old=bgmEl;if(old)fadeTo(old,0,500,()=>old.pause());
- const a=bgmCache[id]||(bgmCache[id]=new Audio(src));a.loop=!!LOOP[id];a.currentTime=0;a.volume=0;a.muted=muted;
- const p=a.play();p&&p.catch(()=>{});fadeTo(a,VOL,600);bgmEl=a;
+ if(!BGM[id]||bgmNow===id)return;bgmNow=id;let c;try{c=AC()}catch(e){return}
+ if(bgmSrc){const g=bgmGain,sr=bgmSrc,t=c.currentTime;g.gain.cancelScheduledValues(t);g.gain.setValueAtTime(g.gain.value,t);g.gain.linearRampToValueAtTime(0,t+.5);try{sr.stop(t+.55)}catch(e){}bgmSrc=null}
+ loadBgm(id).then(()=>{if(bgmNow!==id||!bufs[id])return;const sr=c.createBufferSource(),g=c.createGain(),t=c.currentTime;sr.buffer=bufs[id];sr.loop=!!LOOP[id];g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(VOL,t+.6);sr.connect(g).connect(out());sr.start();bgmSrc=sr;bgmGain=g});
 }
-function toggleMute(){muted=!muted;$('mute').textContent=muted?'🔇':'🔊';Object.values(bgmCache).forEach(a=>a.muted=muted)}
+function toggleMute(){muted=!muted;$('mute').textContent=muted?'🔇':'🔊';if(master)master.gain.value=muted?0:1}
+['pointerdown','touchend','keydown'].forEach(ev=>document.addEventListener(ev,()=>{try{AC();Object.keys(BGM).forEach(loadBgm)}catch(e){}},{passive:true}));
+document.addEventListener('visibilitychange',()=>{if(!ac)return;document.hidden?ac.suspend():ac.resume()});
 let goTok=0;
 function go(id,cb,instant){
  const tok=++goTok,ov=$('fade');playBgm(id);
