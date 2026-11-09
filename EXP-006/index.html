@@ -286,18 +286,23 @@ const $=id=>document.getElementById(id);const $$=q=>document.querySelectorAll(q)
 function snd(f,d=.08,type="square",v=.06){if(muted)return;try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();const o=ac.createOscillator(),g=ac.createGain();o.type=type;o.frequency.value=f;g.gain.value=v;g.gain.exponentialRampToValueAtTime(.001,ac.currentTime+d);o.connect(g).connect(ac.destination);o.start();o.stop(ac.currentTime+d)}catch(e){}}
 /* ---------- BGM ---------- */
 const BGM={field:'bgm_field.mp3',entry:'bgm_name.mp3',movie:'bgm_finale.mp3',result:'bgm_result.mp3'};
-const LOOP={field:1,entry:1};const VOL=.5;let bgmNow=null,muted=false,bgmSrc=null,bgmGain=null,master=null;const bufs={},loading={};
+const LOOP={field:1,entry:1};const VOL=.5;let bgmNow=null,muted=false,bgmUnlocked=false;
+const bgmA=new Audio();bgmA.preload='auto';bgmA.setAttribute('playsinline','');
 function AC(){ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state!=='running'&&!document.hidden)ac.resume().catch(()=>{});return ac}
-function out(){const c=AC();if(!master){master=c.createGain();master.gain.value=muted?0:1;master.connect(c.destination)}return master}
-function loadBgm(id){return loading[id]||(loading[id]=fetch(BGM[id]).then(r=>r.arrayBuffer()).then(b=>new Promise((ok,ng)=>AC().decodeAudioData(b,ok,ng))).then(d=>{bufs[id]=d}).catch(()=>{delete loading[id]}))}
+let bgmFade=0;
+function fadeBgm(to,ms,cb){const tok=++bgmFade,from=bgmA.volume,t0=performance.now();const f=t=>{if(tok!==bgmFade)return;const k=Math.min(1,(t-t0)/ms);try{bgmA.volume=Math.max(0,Math.min(1,from+(to-from)*k))}catch(e){}if(k<1)requestAnimationFrame(f);else cb&&cb()};requestAnimationFrame(f)}
+function startBgm(id){bgmA.src=BGM[id];bgmA.loop=!!LOOP[id];bgmA.muted=muted;try{bgmA.volume=0}catch(e){}const pr=bgmA.play();pr&&pr.catch(()=>{});fadeBgm(VOL,600)}
 function playBgm(id){
- if(!BGM[id]||bgmNow===id)return;bgmNow=id;let c;try{c=AC()}catch(e){return}
- if(bgmSrc){const g=bgmGain,sr=bgmSrc,t=c.currentTime;g.gain.cancelScheduledValues(t);g.gain.setValueAtTime(g.gain.value,t);g.gain.linearRampToValueAtTime(0,t+.5);try{sr.stop(t+.55)}catch(e){}bgmSrc=null}
- loadBgm(id).then(()=>{if(bgmNow!==id||!bufs[id])return;const sr=c.createBufferSource(),g=c.createGain(),t=c.currentTime;sr.buffer=bufs[id];sr.loop=!!LOOP[id];g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(VOL,t+.6);sr.connect(g).connect(out());sr.start();bgmSrc=sr;bgmGain=g});
+ if(!BGM[id]||bgmNow===id)return;const had=bgmNow&&!bgmA.paused;bgmNow=id;
+ if(had)fadeBgm(0,350,()=>{if(bgmNow===id)startBgm(id)});else startBgm(id);
 }
-function toggleMute(){muted=!muted;$('mute').textContent=muted?'🔇':'🔊';if(master)master.gain.value=muted?0:1}
-['pointerdown','touchend','keydown'].forEach(ev=>document.addEventListener(ev,()=>{try{AC();Object.keys(BGM).forEach(loadBgm)}catch(e){}},{passive:true}));
-document.addEventListener('visibilitychange',()=>{if(!ac)return;document.hidden?ac.suspend():ac.resume()});
+function toggleMute(){muted=!muted;$('mute').textContent=muted?'🔇':'🔊';bgmA.muted=muted}
+// 最初のタップで<audio>を解放（以後タイマーからの曲切り替えも鳴る）。マナーモードでも鳴る
+['pointerdown','touchend','click','keydown'].forEach(ev=>document.addEventListener(ev,()=>{try{AC()}catch(e){}
+ if(bgmNow&&bgmA.paused){const pr=bgmA.play();pr&&pr.catch(()=>{})}
+ if(!bgmUnlocked&&!bgmNow){bgmUnlocked=true;bgmA.src=BGM.field;bgmA.muted=true;const pr=bgmA.play();pr&&pr.then(()=>{if(!bgmNow){bgmA.pause()}bgmA.muted=muted}).catch(()=>{bgmA.muted=muted})}
+},{passive:true,capture:true}));
+document.addEventListener('visibilitychange',()=>{if(document.hidden){bgmA.pause();ac&&ac.suspend()}else{if(bgmNow){const pr=bgmA.play();pr&&pr.catch(()=>{})}ac&&ac.resume()}});
 let goTok=0;
 function go(id,cb,instant){
  const tok=++goTok,ov=$('fade');playBgm(id);
