@@ -724,7 +724,12 @@ function showResult(){
  $('rNm').textContent=n;$('rNm').style.fontSize=([...n].length>12?20:[...n].length>8?24:30)+'px';$('rTtl').textContent=t;$('rCom').innerHTML=c;
  $('meter').innerHTML=`<div class="row"><span>攻撃力</span><div class="b"><i style="width:${Math.min(100,s/2)}%;background:#ff6b6b"></i></div><span>${s}</span></div><div class="row"><span>バカさ</span><div class="b"><i style="width:${Math.min(100,b/1.5)}%;background:#7bd4ff"></i></div><span>${b}</span></div>`;
  const hl=(window._hl||[''])[Math.floor(Math.random()*(window._hl||['']).length)];$('rHl').textContent='「'+hl+'」';
- const txt=`${n}と名乗ります。\n\n姫「わたくしはこれから${n}と名乗ります。ルカ、これでどうかしら？」\n盗賊「『${n}だぜ！』って感じでいけば文句なしだ」\n\n――「${hl}」\n称号：${t}${SUR?'（ルカがついにツッコんだ）':''}\n#名乗ります\nhttps://saltums.github.io/sltm-lab/EXP-006/`;
+ const U='https://saltums.github.io/sltm-lab/EXP-006/';
+ // Xの文字数（全角=2）に収める：名場面のひとことが長ければ外す
+ const xw=t=>[...t].reduce((a,c)=>a+(c.charCodeAt(0)>0x2000?2:1),0);
+ let txt=`${n}と名乗ります。\n\n「${hl}」\n称号：${t}${SUR?'（ルカがついにツッコんだ）':''}\n#名乗ります\n`;
+ if(xw(txt)+23>270)txt=`${n}と名乗ります。\n称号：${t}\n#名乗ります\n`;
+ txt+=U;
  SHARE={txt,n,t,hl,s,b};
  go('result');
 }
