@@ -111,7 +111,7 @@ html,body{height:100%;overflow:hidden;background:#000;color:#fff;font-family:"Do
 #confirm.on{display:flex}
 .dlg{background:linear-gradient(#2b3fae,#101a66);border:3px solid #fff;border-radius:6px;box-shadow:0 0 0 2px #000,inset 0 0 0 2px #000a;color:#fff;padding:18px 16px 16px;width:86%;text-align:center;position:relative;font-size:15px}
 .dlg .nm{font-size:20px;margin:10px 0 16px;word-break:break-all;color:#ffe14a;line-height:1.3}
-.dlg .row{display:flex;gap:10px;justify-content:center;min-height:48px;margin-bottom:56px}
+.dlg .row{display:flex;gap:10px;justify-content:center;min-height:48px}
 #yes,#no{width:42%}
 #no.run{position:absolute}
 
@@ -519,17 +519,8 @@ function askConfirm(){
  $('cfNm').textContent=name();$('confirm').classList.add('on');resetNo();snd(660,.1);
 }
 function resetNo(){const n=$('no');n.classList.remove('run');$('noSp')&&$('noSp').remove();n.style.left='';n.style.top='';n.style.right='';n.style.bottom='';n.textContent='いいえ';noRuns=0}
-$('no').addEventListener('pointerdown',e=>{
- e.preventDefault();noRuns++;snd(900,.04);
- const n=$("no"),d=n.closest(".dlg");
- if(noRuns>=4){n.textContent='はい';setTimeout(yes,250);return}
- if(!n.classList.contains('run')){const sp=document.createElement('span');sp.id='noSp';sp.style.cssText=`display:inline-block;width:${n.offsetWidth}px;height:${n.offsetHeight}px`;n.after(sp);n.classList.add('run')}
- const yb=$('yes'),dr=d.getBoundingClientRect(),yr=yb.getBoundingClientRect(),w=n.offsetWidth,h=n.offsetHeight;
- const top0=$('cfNm').getBoundingClientRect().bottom-dr.top+4;let x,y,k=0;do{x=6+Math.random()*(d.clientWidth-w-12);y=top0+Math.random()*Math.max(0,d.clientHeight-h-6-top0);k++}
- while(k<40&&!(x+w<yr.left-dr.left-6||x>yr.right-dr.left+6||y+h<yr.top-dr.top-6||y>yr.bottom-dr.top+6));
- if(k>=40){x=d.clientWidth-w-6;y=d.clientHeight-h-6} // 置き場所がなければ右下へ
- n.style.left=x+'px';n.style.top=y+'px';
-});
+$('no').addEventListener('click',()=>{snd(220);$('confirm').classList.remove('on')}); // いいえ＝名前選びに戻る
+
 function yes(){streamOn=false;$('confirm').classList.remove('on');snd(523,.1);setTimeout(()=>snd(784,.2),110);reaction()}
 
 /* ---------- 名乗り → 反応 ---------- */
